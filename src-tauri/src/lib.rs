@@ -34,7 +34,7 @@ pub fn run() {
 
             let icon = app.default_window_icon().cloned().expect("Missing default window icon");
             
-            let tray = TrayIconBuilder::new()
+            let _tray = TrayIconBuilder::new()
                 .icon(icon)
                 .on_tray_icon_event(|tray, event| match event {
                     TrayIconEvent::Click { button, button_state, .. } => {
