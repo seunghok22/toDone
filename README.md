@@ -1,0 +1,1 @@
+ai 개발 능력을 향상시키기 위해 antigravity, stitch 등을 이용해 개발된 프로젝트입니다.
