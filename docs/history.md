@@ -1,5 +1,20 @@
 # Changelog (작업 일지)
 
+## 2026-03-24 Phase 4: 트레이 앱(메뉴바) 동작 및 OS 최적화
+### ✨ Added (추가된 기능)
+- `tauri.conf.json` 윈도우 설정 변경: 앱 창의 타이틀바와 테두리 제거(`decorations: false`), 배경 투명화(`transparent: true`), 시작 시 창 숨김(`visible: false`), 크기 조절 방지(`resizable: false`).
+- `tauri-plugin-tray-icon` 기능 활성화 및 `lib.rs` 메뉴바 시스템 트레이 아이콘 부착.
+- 트레이 아이콘 클릭 동작: 바탕화면에서 왼쪽 마우스 클릭 시 창이 나타나고(`show`), 메뉴바에서 한 번 더 클릭하면 부드럽게 창을 닫음(`hide`).
+- 바탕화면 포커스 처리: 다른 앱이나 바탕화면을 누르면(`WindowEvent::Focused(false)`) 자동으로 앱 창이 숨겨지는 Blur 하이드(Hide) 이벤트 적용.
+- Mac 하단 독(Dock)에 아이콘이 나타나지 않게 앱 활성 정책을 `Accessory` 모드로 변경 성공.
+### ✨ commits (관련 커밋 리스트)
+- feat: 메뉴바 트레이 앱 동작 및 Blur 숨김 처리 구현
+### 🐛 Fixed (해결된 문제 및 버그)
+- (없음)
+### 📝 Next Steps (다음에 진행할 추천 작업)
+- (최종 점검) 실제 사용성 개선을 위해 처음부터 특정 좌표에 창이 나타나도록 커스터마이징 로직 고려.
+- React 측 Weekly/Monthly 탭 필터링 데이터 연동.
+
 ## 2026-03-24 Phase 3: 로컬 데이터베이스 연동 및 관리
 ### ✨ Added (추가된 기능)
 - `tauri-plugin-sql`을 통해 `sqlite:todone.db` 데이터베이스 및 `tasks` 테이블 생성/마이그레이션 적용.

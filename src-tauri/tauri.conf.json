@@ -12,9 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "tmptauriapp",
+        "title": "toDone",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "resizable": false
       }
     ],
     "security": {
