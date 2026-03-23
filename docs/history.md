@@ -5,13 +5,16 @@
 - `tauri-plugin-sql`을 통해 `sqlite:todone.db` 데이터베이스 및 `tasks` 테이블 생성/마이그레이션 적용.
 - `zustand` 라이브러리를 활용하여 `useTaskStore.ts` 전역 상태 스토어 생성 및 CRUD 액션(할 일 목록 가져오기, 추가, 토글, 삭제) 구현.
 - `MainLayout.tsx` 컴포넌트 내부의 체크박스 및 입력창을 스토어 모듈에 바인딩하여 실제 애플리케이션 기능 활성화.
+- (디버깅 지원) 로컬 DB 오류가 발생할 경우를 대비하여 화면 최상단에 직관적인 빨간색 오류 배너를 띄우도록 `error` 상태 추가.
 ### ✨ commits (관련 커밋 리스트)
 - feat: SQLite DB 연동 및 Zustand 기반 CRUD 기능 구현
+- fix: SQLite 실행 권한 보강, 폴백 UUID 및 UI 에러 배너 추가
 ### 🐛 Fixed (해결된 문제 및 버그)
-- (없음)
+- Tauri v2 보안 정책으로 인해 내부 SQL 동작(`execute`, `select`)이 막히던 문제를 `capabilities/default.json`에 권한(allow-execute, allow-select, allow-load)을 추가하여 해결.
+- 일부 localhost 런타임 환경에서 `crypto.randomUUID()`가 작동하지 않는 문제를 대비하여 `Date.now()`와 난수 조합을 통한 고유 ID 생성 방식으로 안전하게 대체(Fallback).
 ### 📝 Next Steps (다음에 진행할 추천 작업)
-- Phase 4 진행: 트레이 앱(메뉴바) 동작, 프레임 제거 및 OS 최적화 적용.
-- 클릭 시 앱 노출 및 바탕화면 클릭 시 숨김(Blur 처리) 로직 구현.
+- [기능 개선] Weekly, Monthly, All 탭 클릭 시 카테고리별로 필터링되어 보이도록 로직 고도화.
+- Phase 4 진행: 트레이 앱(메뉴바) 동작, 프레임 제거 및 바탕화면 클릭 시 숨김(Blur 처리) OS 최적화 로직 적용.
 
 ## 2026-03-24 Phase 2: UI 뼈대 및 모듈 컴포넌트 구축
 ### ✨ Added (추가된 기능)

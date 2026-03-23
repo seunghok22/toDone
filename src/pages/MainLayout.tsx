@@ -6,7 +6,7 @@ import { Checkbox } from "@/atoms/checkbox";
 import { useTaskStore } from "@/store/useTaskStore";
 
 export function MainLayout() {
-  const { tasks, loadTasks, addTask, toggleTask, deleteTask } = useTaskStore();
+  const { tasks, error, loadTasks, addTask, toggleTask, deleteTask } = useTaskStore();
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const isReady = true;
 
@@ -24,6 +24,7 @@ export function MainLayout() {
 
   return (
     <div className="w-full max-w-[800px] mx-auto h-screen p-6 flex flex-col gap-6 select-none bg-transparent">
+      {error && <div className="bg-destructive text-destructive-foreground p-3 rounded-md text-sm">{error}</div>}
       <header className="flex justify-between items-center pb-2 border-b border-border/50 shrink-0">
         <h1 className="text-2xl font-semibold text-foreground tracking-tight">toDone</h1>
         <Button size="sm" variant="ghost">Settings</Button>

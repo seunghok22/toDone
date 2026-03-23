@@ -12,6 +12,7 @@ export interface Task {
 
 interface TaskStore {
   tasks: Task[];
+  error: string | null;
   loadTasks: () => Promise<void>;
   addTask: (title: string, category?: string) => Promise<void>;
   toggleTask: (id: string, currentStatus: number) => Promise<void>;
@@ -20,19 +21,21 @@ interface TaskStore {
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
+  error: null,
   loadTasks: async () => {
     try {
       const db = await Database.load('sqlite:todone.db');
       const result = await db.select<Task[]>('SELECT * FROM tasks ORDER BY created_at DESC');
-      set({ tasks: result });
+      set({ tasks: result, error: null });
     } catch (e) {
       console.error("Failed to load tasks", e);
+      set({ error: "Load DB Error: " + String(e) });
     }
   },
   addTask: async (title, category) => {
     try {
       const db = await Database.load('sqlite:todone.db');
-      const id = crypto.randomUUID();
+      const id = Date.now().toString() + Math.random().toString(36).substring(2); // Safe fallback UUID
       const created_at = new Date().toISOString();
       await db.execute(
         'INSERT INTO tasks (id, title, is_completed, due_date, category, created_at) VALUES ($1, $2, 0, NULL, $3, $4)',
@@ -41,6 +44,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       await get().loadTasks();
     } catch (e) {
       console.error("Failed to add task", e);
+      set({ error: "Add DB Error: " + String(e) });
     }
   },
   toggleTask: async (id, currentStatus) => {
@@ -51,6 +55,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       await get().loadTasks();
     } catch (e) {
       console.error("Failed to toggle task", e);
+      set({ error: "Toggle DB Error: " + String(e) });
     }
   },
   deleteTask: async (id) => {
@@ -60,6 +65,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       await get().loadTasks();
     } catch (e) {
       console.error("Failed to delete task", e);
+      set({ error: "Delete DB Error: " + String(e) });
     }
   }
 }));
