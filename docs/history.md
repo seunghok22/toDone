@@ -1,5 +1,21 @@
 # Changelog (작업 일지)
 
+## 2026-03-24 Phase 6: 캘린더(Monthly) 및 주간(Weekly) 뷰 구현
+### ✨ Added (추가된 기능)
+- `sqlite` DB: 반복 작업을 제어하기 위해 `recurrence` 컬럼(`none`, `daily`, `weekly`, `monthly`)을 새로 추가하는 **v3 마이그레이션 적용**.
+- **Monthly(달력) 탭 도입**: `date-fns` 날짜 라이브러리를 통해 한 달 분량의 Grid 달력 UI를 렌더링하고, 각 칸에 마감일 기준 일정을 점/단어 텍스트로 노출(`MonthlyView.tsx`). 
+  - (제약사항 준수) 달력이 반복 주기로 인해 꽉 차 보이는 것을 막고자 `recurrence !== 'none'`인 항목은 자동 배제 처리.
+  - (제약사항 준수) 마감일(`due_date`)이 아예 없는 작업은 달력 하단에 `No Due Date` 스크롤 뷰로 별도 모음 표시.
+- **Weekly(주간) 탭 도입**: 현재 주차 범위(`월요일 ~ 일요일`)를 계산하여, 이번 주 마감인 작업 혹은 `recurrence === 'weekly'`인 일정들만 수집(`WeeklyView.tsx`).
+  - 수집된 일정들을 직관적인 UI를 제공하기 위해 '완료된 항목(Done)'과 '이번 주 남은 할 일(Pending This Week)' 구역으로 분할 렌더링.
+### ✨ commits (관련 커밋 리스트)
+- feat: Monthly 캘린더 뷰 및 Weekly 필터링 구현
+### 🐛 Fixed (해결된 문제 및 버그)
+- (없음)
+### 📝 Next Steps (다음에 진행할 추천 작업)
+- Phase 7 진행: 각 일정을 클릭했을 때 뜨는 상세 정보 모달(Modal) 창 구현 및 반복 주기(Recurring) 처리 백그라운드 스케줄링.
+- 캘린더(Monthly) UI 렌더링 폴리싱 (마우스 오버나 툴팁을 통한 자세한 스케줄 정보 노출).
+
 ## 2026-03-24 Phase 5: 일간(Daily) 및 전체(All) 칸반 보드 고도화
 ### ✨ Added (추가된 기능)
 - `sqlite` DB: 기존 `tasks` 테이블을 해치지 않고 `status` 컬럼(`todo`, `in-progress`, `done`)을 도입하는 **v2 마이그레이션 적용**.

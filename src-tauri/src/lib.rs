@@ -28,6 +28,12 @@ pub fn run() {
             description: "add_status_column",
             sql: "ALTER TABLE tasks ADD COLUMN status TEXT NOT NULL DEFAULT 'todo';",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "add_recurrence_column",
+            sql: "ALTER TABLE tasks ADD COLUMN recurrence TEXT NOT NULL DEFAULT 'none';",
+            kind: MigrationKind::Up,
         }
     ];
 

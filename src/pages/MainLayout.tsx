@@ -7,6 +7,9 @@ import { Checkbox } from "@/atoms/checkbox";
 import { useTaskStore } from "@/store/useTaskStore";
 import { KanbanBoard } from "@/organisms/KanbanBoard";
 
+import { MonthlyView } from "@/organisms/MonthlyView";
+import { WeeklyView } from "@/organisms/WeeklyView";
+
 export function MainLayout() {
   const { tasks, error, loadTasks, addTask, toggleTask, deleteTask } = useTaskStore();
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -89,11 +92,11 @@ export function MainLayout() {
           </div>
         </TabsContent>
         
-        <TabsContent value="weekly" className="w-full flex-1 outline-none">
-          <p className="text-muted-foreground text-center mt-10 text-sm">Weekly View Content</p>
+        <TabsContent value="weekly" className="w-full flex-1 outline-none overflow-hidden pb-4">
+          <WeeklyView />
         </TabsContent>
-        <TabsContent value="monthly" className="w-full flex-1 outline-none">
-          <p className="text-muted-foreground text-center mt-10 text-sm">Monthly View Content</p>
+        <TabsContent value="monthly" className="w-full flex-1 outline-none overflow-hidden pb-4">
+          <MonthlyView />
         </TabsContent>
         <TabsContent value="all" className="w-full flex-1 outline-none overflow-hidden">
           <KanbanBoard />

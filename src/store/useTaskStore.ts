@@ -9,13 +9,14 @@ export interface Task {
   category: string | null;
   created_at: string;
   status: 'todo' | 'in-progress' | 'done';
+  recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
 }
 
 interface TaskStore {
   tasks: Task[];
   error: string | null;
   loadTasks: () => Promise<void>;
-  addTask: (title: string, category?: string, dueDate?: string | null) => Promise<void>;
+  addTask: (title: string, category?: string, dueDate?: string | null, recurrence?: string) => Promise<void>;
   updateTaskStatus: (id: string, newStatus: 'todo' | 'in-progress' | 'done') => Promise<void>;
   toggleTask: (id: string, currentStatus: number) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -34,14 +35,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set({ error: "Load DB Error: " + String(e) });
     }
   },
-  addTask: async (title, category, dueDate) => {
+  addTask: async (title, category, dueDate, recurrence) => {
     try {
       const db = await Database.load('sqlite:todone.db');
-      const id = Date.now().toString() + Math.random().toString(36).substring(2); // Safe fallback UUID
+      const id = Date.now().toString() + Math.random().toString(36).substring(2);
       const created_at = new Date().toISOString();
       await db.execute(
-        'INSERT INTO tasks (id, title, is_completed, due_date, category, created_at, status) VALUES ($1, $2, 0, $3, $4, $5, $6)',
-        [id, title, dueDate || null, category || null, created_at, 'todo']
+        'INSERT INTO tasks (id, title, is_completed, due_date, category, created_at, status, recurrence) VALUES ($1, $2, 0, $3, $4, $5, $6, $7)',
+        [id, title, dueDate || null, category || null, created_at, 'todo', recurrence || 'none']
       );
       await get().loadTasks();
     } catch (e) {
