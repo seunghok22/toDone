@@ -1,5 +1,18 @@
 # Changelog (작업 일지)
 
+## 2026-03-24 Phase 3: 로컬 데이터베이스 연동 및 관리
+### ✨ Added (추가된 기능)
+- `tauri-plugin-sql`을 통해 `sqlite:todone.db` 데이터베이스 및 `tasks` 테이블 생성/마이그레이션 적용.
+- `zustand` 라이브러리를 활용하여 `useTaskStore.ts` 전역 상태 스토어 생성 및 CRUD 액션(할 일 목록 가져오기, 추가, 토글, 삭제) 구현.
+- `MainLayout.tsx` 컴포넌트 내부의 체크박스 및 입력창을 스토어 모듈에 바인딩하여 실제 애플리케이션 기능 활성화.
+### ✨ commits (관련 커밋 리스트)
+- feat: SQLite DB 연동 및 Zustand 기반 CRUD 기능 구현
+### 🐛 Fixed (해결된 문제 및 버그)
+- (없음)
+### 📝 Next Steps (다음에 진행할 추천 작업)
+- Phase 4 진행: 트레이 앱(메뉴바) 동작, 프레임 제거 및 OS 최적화 적용.
+- 클릭 시 앱 노출 및 바탕화면 클릭 시 숨김(Blur 처리) 로직 구현.
+
 ## 2026-03-24 Phase 2: UI 뼈대 및 모듈 컴포넌트 구축
 ### ✨ Added (추가된 기능)
 - `shadcn/ui` 초기화 및 Stitch "Crystalline Observer" (macOS 네이티브 테마) 전역 스타일 파일 적용 (프로스티드 글래스, 텍스트 드래그 방지, SF Pro 폰트 등).
