@@ -1,5 +1,20 @@
 # Changelog (작업 일지)
 
+## 2026-03-24 Phase 5: 일간(Daily) 및 전체(All) 칸반 보드 고도화
+### ✨ Added (추가된 기능)
+- `sqlite` DB: 기존 `tasks` 테이블을 해치지 않고 `status` 컬럼(`todo`, `in-progress`, `done`)을 도입하는 **v2 마이그레이션 적용**.
+- `@dnd-kit/core` 라이브러리 연동: **'All' 탭 전용 3단 칸반 보드(`KanbanBoard.tsx`)** 구축.
+- **드래그 앤 드롭(DnD) 지원**: 할 일 카드를 집어서 다른 열로 옮기면 즉각 데이터베이스의 `status` 값이 변경되도록 `updateTaskStatus` 로직 바인딩.
+- **'Daily' 탭 필터링 강화**: 저장된 전체 할 일 중 마감일(`due_date`)이 오늘 날짜인 것, 혹은 카테고리가 `daily`인 것만 노출되도록 필터링 시스템 구현.
+- 할 일 추가 시 자동으로 오늘 날짜가 마감일로 주입되어 올바른 구역에 등록되는 동적 파이프라인.
+### ✨ commits (관련 커밋 리스트)
+- feat: 전체 뷰 칸반 보드 DnD 도입 및 일간 필터링 구현
+### 🐛 Fixed (해결된 문제 및 버그)
+- 기존 체크박스 클릭 논리(Toggle)를 덮어씌워 `todo`와 `done` 간의 status 값도 동기화되도록 데이터 일관성 패치.
+### 📝 Next Steps (다음에 진행할 추천 작업)
+- Phase 6 진행: 캘린더 모양 렌더링을 통한 Monthly 뷰, 그리고 Weekly 뷰 개발.
+- 칸반 드래그 앤 드롭(DnD) 시 Sortable(순서 지정) 로직 및 애니메이션 고도화.
+
 ## 2026-03-24 Phase 4: 트레이 앱(메뉴바) 동작 및 OS 최적화
 ### ✨ Added (추가된 기능)
 - `tauri.conf.json` 윈도우 설정 변경: 앱 창의 타이틀바와 테두리 제거(`decorations: false`), 배경 투명화(`transparent: true`), 시작 시 창 숨김(`visible: false`), 크기 조절 방지(`resizable: false`).

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { format } from "date-fns";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/atoms/tabs";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
 import { Checkbox } from "@/atoms/checkbox";
 import { useTaskStore } from "@/store/useTaskStore";
+import { KanbanBoard } from "@/organisms/KanbanBoard";
 
 export function MainLayout() {
   const { tasks, error, loadTasks, addTask, toggleTask, deleteTask } = useTaskStore();
@@ -14,9 +16,12 @@ export function MainLayout() {
     loadTasks();
   }, [loadTasks]);
 
+  const todayString = format(new Date(), 'yyyy-MM-dd');
+  const dailyTasks = tasks.filter(t => t.due_date === todayString || t.category === "daily");
+
   const handleAdd = async () => {
     if (!newTaskTitle.trim()) return;
-    await addTask(newTaskTitle, "daily");
+    await addTask(newTaskTitle, "daily", todayString);
     setNewTaskTitle("");
   };
 
@@ -41,10 +46,10 @@ export function MainLayout() {
         <TabsContent value="daily" className="w-full h-full flex flex-col overflow-hidden outline-none">
           <div className="flex-1 overflow-y-auto pr-2 pb-2">
             <div className="flex flex-col gap-3">
-              {tasks.length === 0 && (
-                <p className="text-center text-muted-foreground mt-10 text-sm">No tasks yet. Add one below!</p>
+              {dailyTasks.length === 0 && (
+                <p className="text-center text-muted-foreground mt-10 text-sm">No tasks for today. Add one below!</p>
               )}
-              {tasks.map((task) => (
+              {dailyTasks.map((task) => (
                 <div key={task.id} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-colors hover:bg-card/80">
                   <div className="flex items-center gap-3 flex-1 overflow-hidden">
                     <Checkbox 
@@ -90,8 +95,8 @@ export function MainLayout() {
         <TabsContent value="monthly" className="w-full flex-1 outline-none">
           <p className="text-muted-foreground text-center mt-10 text-sm">Monthly View Content</p>
         </TabsContent>
-        <TabsContent value="all" className="w-full flex-1 outline-none">
-          <p className="text-muted-foreground text-center mt-10 text-sm">All Tasks Content</p>
+        <TabsContent value="all" className="w-full flex-1 outline-none overflow-hidden">
+          <KanbanBoard />
         </TabsContent>
       </Tabs>
     </div>

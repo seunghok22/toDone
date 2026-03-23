@@ -22,6 +22,12 @@ pub fn run() {
                 created_at TEXT NOT NULL
             );",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "add_status_column",
+            sql: "ALTER TABLE tasks ADD COLUMN status TEXT NOT NULL DEFAULT 'todo';",
+            kind: MigrationKind::Up,
         }
     ];
 

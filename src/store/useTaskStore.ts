@@ -8,13 +8,15 @@ export interface Task {
   due_date: string | null;
   category: string | null;
   created_at: string;
+  status: 'todo' | 'in-progress' | 'done';
 }
 
 interface TaskStore {
   tasks: Task[];
   error: string | null;
   loadTasks: () => Promise<void>;
-  addTask: (title: string, category?: string) => Promise<void>;
+  addTask: (title: string, category?: string, dueDate?: string | null) => Promise<void>;
+  updateTaskStatus: (id: string, newStatus: 'todo' | 'in-progress' | 'done') => Promise<void>;
   toggleTask: (id: string, currentStatus: number) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
 }
@@ -32,14 +34,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set({ error: "Load DB Error: " + String(e) });
     }
   },
-  addTask: async (title, category) => {
+  addTask: async (title, category, dueDate) => {
     try {
       const db = await Database.load('sqlite:todone.db');
       const id = Date.now().toString() + Math.random().toString(36).substring(2); // Safe fallback UUID
       const created_at = new Date().toISOString();
       await db.execute(
-        'INSERT INTO tasks (id, title, is_completed, due_date, category, created_at) VALUES ($1, $2, 0, NULL, $3, $4)',
-        [id, title, category || null, created_at]
+        'INSERT INTO tasks (id, title, is_completed, due_date, category, created_at, status) VALUES ($1, $2, 0, $3, $4, $5, $6)',
+        [id, title, dueDate || null, category || null, created_at, 'todo']
       );
       await get().loadTasks();
     } catch (e) {
@@ -47,11 +49,24 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set({ error: "Add DB Error: " + String(e) });
     }
   },
+  updateTaskStatus: async (id, newStatus) => {
+    try {
+      const db = await Database.load('sqlite:todone.db');
+      // If setting to done, also update is_completed for backward compatibility or toggle logic
+      const isCompleted = newStatus === 'done' ? 1 : 0;
+      await db.execute('UPDATE tasks SET status = $1, is_completed = $2 WHERE id = $3', [newStatus, isCompleted, id]);
+      await get().loadTasks();
+    } catch (e) {
+      console.error("Failed to update status", e);
+      set({ error: "Status Update DB Error: " + String(e) });
+    }
+  },
   toggleTask: async (id, currentStatus) => {
     try {
       const db = await Database.load('sqlite:todone.db');
-      const newStatus = currentStatus === 0 ? 1 : 0;
-      await db.execute('UPDATE tasks SET is_completed = $1 WHERE id = $2', [newStatus, id]);
+      const newCompleted = currentStatus === 0 ? 1 : 0;
+      const newStatus = newCompleted === 1 ? 'done' : 'todo';
+      await db.execute('UPDATE tasks SET is_completed = $1, status = $2 WHERE id = $3', [newCompleted, newStatus, id]);
       await get().loadTasks();
     } catch (e) {
       console.error("Failed to toggle task", e);
