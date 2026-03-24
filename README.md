@@ -5,6 +5,8 @@ ai 개발 능력을 향상시키기 위해 antigravity, stitch 등을 이용해 
 
 toDone은 복잡한 창을 띄울 필요 없이, Mac의 메뉴바나 Windows의 작업 표시줄에서 클릭 한 번으로 빠르게 열고 닫을 수 있는 직관적인 데스크톱 투두(To-Do) 어플리케이션입니다.
 
+<img width="610" height="600" alt="스크린샷 2026-03-24 오후 5 12 57" src="https://github.com/user-attachments/assets/7308c55e-c352-41c6-834b-b218bf252919" />
+
 ---
 
 ## ✨ 주요 기능 (Features)
