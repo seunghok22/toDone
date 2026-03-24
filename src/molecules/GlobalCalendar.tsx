@@ -20,8 +20,8 @@ export function GlobalCalendar() {
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   
   return (
-    <div className="flex flex-col w-full shrink-0 border-b border-border/40 bg-card/50 p-4 shadow-sm z-10">
-      <div className="flex items-center justify-between mb-3 px-2">
+    <div className="flex flex-col w-full shrink-0 border-b border-white/10 bg-card/30 backdrop-blur-lg p-3 z-10">
+      <div className="flex items-center justify-between mb-2 px-2">
         <h2 className="text-sm font-bold text-foreground tracking-tight">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex gap-1">
           <button onClick={handlePrevMonth} className="p-1.5 hover:bg-muted rounded-md text-muted-foreground transition-colors">
@@ -51,7 +51,7 @@ export function GlobalCalendar() {
                 setSelectedDate(dateStr);
                 if (!isCurrentMonth) setCurrentMonth(day);
               }}
-              className={`p-1 flex flex-col items-center justify-start h-12 rounded-lg transition-all border ${isSelected ? 'border-primary bg-primary/10 shadow-sm' : 'border-transparent hover:border-border hover:bg-card'} ${!isCurrentMonth ? 'opacity-40' : ''}`}
+              className={`p-1 flex flex-col items-center justify-start h-10 rounded-lg transition-all border ${isSelected ? 'border-primary bg-primary/10 shadow-sm' : 'border-transparent hover:border-border hover:bg-white/5'} ${!isCurrentMonth ? 'opacity-35' : ''}`}
             >
               <div className={`text-[11px] font-bold w-5 h-5 flex items-center justify-center rounded-full mb-1 ${isSelected ? 'bg-primary text-primary-foreground' : isToday(day) ? 'bg-muted-foreground/20 text-foreground' : 'text-foreground'}`}>
                 {format(day, 'd')}

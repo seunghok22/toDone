@@ -57,9 +57,9 @@ export function MainLayout() {
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="w-full max-w-[800px] mx-auto h-screen flex flex-col select-none bg-transparent">
-      {error && <div className="bg-destructive text-destructive-foreground p-3 m-6 mb-0 rounded-md text-sm">{error}</div>}
-      <header className="flex justify-between items-center px-6 pt-6 pb-2 shrink-0">
+    <div className="w-full max-w-[800px] mx-auto h-screen flex flex-col select-none bg-transparent rounded-2xl overflow-hidden">
+      {error && <div className="bg-destructive text-destructive-foreground p-3 m-4 mb-0 rounded-xl text-sm">{error}</div>}
+      <header className="flex justify-between items-center px-6 pt-4 pb-1 shrink-0">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
         <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>Settings</Button>
       </header>
