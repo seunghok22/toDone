@@ -1,5 +1,5 @@
-import React from 'react';
-import { DndContext, useDraggable, useDroppable, DragEndEvent } from '@dnd-kit/core';
+import React, { useState } from 'react';
+import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
 import { Task, useTaskStore } from '@/store/useTaskStore';
 
 function KanbanColumn({ id, title, tasks }: { id: string, title: string, tasks: Task[] }) {
@@ -18,16 +18,14 @@ function KanbanColumn({ id, title, tasks }: { id: string, title: string, tasks: 
 }
 
 function KanbanCard({ task }: { task: Task }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: task.id,
     data: { task }
   });
   
-  const style: React.CSSProperties = transform ? { 
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.8 : 1,
-  } : {};
+  const style: React.CSSProperties = { 
+    opacity: isDragging ? 0.3 : 1,
+  };
   
   return (
     <div
@@ -44,8 +42,14 @@ function KanbanCard({ task }: { task: Task }) {
 
 export function KanbanBoard() {
   const { tasks, updateTaskStatus } = useTaskStore();
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
     const { active, over } = event;
     if (!over) return;
     
@@ -62,13 +66,23 @@ export function KanbanBoard() {
   const inProgressTasks = tasks.filter(t => t.status === 'in-progress');
   const doneTasks = tasks.filter(t => t.status === 'done');
 
+  const activeTask = activeId ? tasks.find(t => t.id === activeId) : null;
+
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 w-full h-full pb-2">
         <KanbanColumn id="todo" title="To Do" tasks={todoTasks} />
         <KanbanColumn id="in-progress" title="In Progress" tasks={inProgressTasks} />
         <KanbanColumn id="done" title="Done" tasks={doneTasks} />
       </div>
+      
+      <DragOverlay dropAnimation={{ duration: 250, easing: 'ease-out' }}>
+        {activeTask ? (
+          <div className={`bg-card p-3 rounded-lg border shadow-xl cursor-grabbing flex items-center justify-between border-primary text-foreground opacity-95 scale-105 origin-center transition-none ${activeTask.status === 'done' ? 'line-through text-muted-foreground bg-muted/80 border-border' : ''}`}>
+            <span className="text-sm font-medium leading-snug">{activeTask.title}</span>
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
