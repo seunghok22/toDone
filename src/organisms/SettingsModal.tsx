@@ -1,12 +1,12 @@
 import { useTaskStore } from "@/store/useTaskStore";
 import { Button } from "@/atoms/button";
-import { exit } from "@tauri-apps/plugin-process";
+import { invoke } from "@tauri-apps/api/core";
 
 export function SettingsModal() {
   const { isSettingsModalOpen, setSettingsModalOpen, allTabPeriod, setAllTabPeriod } = useTaskStore();
 
   const handleQuit = async () => {
-    await exit(0);
+    await invoke('quit_app');
   };
 
   if (!isSettingsModalOpen) return null;
