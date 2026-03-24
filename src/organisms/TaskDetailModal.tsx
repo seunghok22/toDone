@@ -41,10 +41,8 @@ export function TaskDetailModal() {
 
   const handleDelete = () => {
     if (!isEditMode) return;
-    if (confirm("Are you sure you want to delete this task?")) {
-      deleteTask(editingTask.id);
-      closeModal();
-    }
+    deleteTask(editingTask.id);
+    closeModal();
   };
 
   return (
