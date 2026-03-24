@@ -22,7 +22,7 @@ export function SettingsModal() {
         <div className="p-5 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-muted-foreground tracking-wider">'All' Tab Period</label>
-            <p className="text-xs text-muted-foreground mb-1">Select the time frame for tasks shown in the Kanban board (All tab).</p>
+            <p className="text-xs text-muted-foreground mb-1">Select the time frame for tasks shown in the Kanban board. This also determines how far back overdue in-progress tasks will carry over into the Daily & Weekly tabs.</p>
             <select
               value={allTabPeriod}
               onChange={(e) => setAllTabPeriod(e.target.value as any)}
@@ -32,6 +32,7 @@ export function SettingsModal() {
               <option value="day">Daily (Based on Selected Date)</option>
               <option value="week">Weekly (Week of Selected Date)</option>
               <option value="month">Monthly (Month of Selected Date)</option>
+              <option value="year">Yearly (Year of Selected Date)</option>
             </select>
           </div>
         </div>

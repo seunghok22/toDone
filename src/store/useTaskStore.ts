@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import Database from '@tauri-apps/plugin-sql';
-import { addDays, addWeeks, addMonths, parseISO, format } from 'date-fns';
+import { addDays, addWeeks, addMonths, parseISO, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 export interface Task {
   id: string;
@@ -31,8 +31,8 @@ interface TaskStore {
 
   isSettingsModalOpen: boolean;
   setSettingsModalOpen: (isOpen: boolean) => void;
-  allTabPeriod: 'all' | 'day' | 'week' | 'month';
-  setAllTabPeriod: (period: 'all' | 'day' | 'week' | 'month') => void;
+  allTabPeriod: 'all' | 'day' | 'week' | 'month' | 'year';
+  setAllTabPeriod: (period: 'all' | 'day' | 'week' | 'month' | 'year') => void;
 
   updateTaskStatus: (id: string, newStatus: 'todo' | 'in-progress' | 'done') => Promise<void>;
   toggleTask: (id: string, currentStatus: number) => Promise<void>;
@@ -46,6 +46,29 @@ const generateNextDueDate = (current: string | null, recurrence: string) => {
   else if (recurrence === 'weekly') nextDate = addWeeks(baseDate, 1);
   else if (recurrence === 'monthly') nextDate = addMonths(baseDate, 1);
   return format(nextDate, 'yyyy-MM-dd');
+};
+
+export const isTaskInPeriod = (effectiveDateStr: string, pivotDateStr: string, period: 'all' | 'day' | 'week' | 'month' | 'year') => {
+  if (period === 'all') return true;
+  if (period === 'day') return effectiveDateStr === pivotDateStr;
+  
+  const effectiveDate = parseISO(effectiveDateStr);
+  const pivotDate = parseISO(pivotDateStr);
+  
+  if (period === 'week') {
+    const start = startOfWeek(pivotDate, { weekStartsOn: 1 });
+    const end = endOfWeek(pivotDate, { weekStartsOn: 1 });
+    return effectiveDate >= start && effectiveDate <= end;
+  } else if (period === 'month') {
+    const start = startOfMonth(pivotDate);
+    const end = endOfMonth(pivotDate);
+    return effectiveDate >= start && effectiveDate <= end;
+  } else if (period === 'year') {
+    const start = startOfYear(pivotDate);
+    const end = endOfYear(pivotDate);
+    return effectiveDate >= start && effectiveDate <= end;
+  }
+  return true;
 };
 
 

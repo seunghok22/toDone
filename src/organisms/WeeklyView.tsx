@@ -1,25 +1,29 @@
-import { useTaskStore, Task } from "@/store/useTaskStore";
-import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
+import { useTaskStore, Task, isTaskInPeriod } from "@/store/useTaskStore";
+import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
 import { Checkbox } from "@/atoms/checkbox";
 
 export function WeeklyView() {
-  const { tasks, toggleTask, openEditModal, selectedDate } = useTaskStore();
-  const currentDate = new Date(selectedDate);
+  const { tasks, toggleTask, openEditModal, selectedDate, allTabPeriod } = useTaskStore();
+  const currentDate = parseISO(selectedDate);
   
-  const weekStart = startOfWeek(currentDate);
-  const weekEnd = endOfWeek(currentDate);
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
   
   const weeklyTasks = tasks.filter(t => {
     if (t.recurrence === 'weekly') return true;
-    if (t.due_date) {
-      try {
-        const date = parseISO(t.due_date);
-        return isWithinInterval(date, { start: weekStart, end: weekEnd });
-      } catch (e) {
-        return false; // Safely handle parse errors
-      }
-    }
-    return false;
+    
+    const effectiveDateStr = t.due_date || t.created_at.split('T')[0];
+    const effectiveDate = parseISO(effectiveDateStr);
+    
+    // 1. 해당 주에 속하는 작업
+    const isThisWeek = effectiveDate >= weekStart && effectiveDate <= weekEnd;
+    
+    // 2. 마감일 지남 + in-progress 상태 + allTabPeriod 설정 범위 내 (carry-over)
+    const isOverdueInProgress = t.status === 'in-progress'
+      && effectiveDate < weekStart
+      && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
+      
+    return isThisWeek || isOverdueInProgress;
   });
   
   const doneTasks = weeklyTasks.filter(t => t.status === 'done');

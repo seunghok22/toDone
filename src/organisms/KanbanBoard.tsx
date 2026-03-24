@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
-import { Task, useTaskStore } from '@/store/useTaskStore';
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { Task, useTaskStore, isTaskInPeriod } from '@/store/useTaskStore';
 
 function KanbanColumn({ id, title, tasks }: { id: string, title: string, tasks: Task[] }) {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -75,21 +74,7 @@ export function KanbanBoard() {
       if (allTabPeriod === 'all') return true;
       
       const effectiveDateStr = t.due_date || t.created_at.split('T')[0];
-      const effectiveDate = parseISO(effectiveDateStr);
-      const pivotDate = parseISO(selectedDate);
-
-      if (allTabPeriod === 'day') {
-        return effectiveDateStr === selectedDate;
-      } else if (allTabPeriod === 'week') {
-        const start = startOfWeek(pivotDate, { weekStartsOn: 1 });
-        const end = endOfWeek(pivotDate, { weekStartsOn: 1 });
-        return effectiveDate >= start && effectiveDate <= end;
-      } else if (allTabPeriod === 'month') {
-        const start = startOfMonth(pivotDate);
-        const end = endOfMonth(pivotDate);
-        return effectiveDate >= start && effectiveDate <= end;
-      }
-      return true;
+      return isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
     });
   }, [tasks, allTabPeriod, selectedDate]);
 

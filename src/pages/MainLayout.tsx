@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/atoms/tabs";
 import { Button } from "@/atoms/button";
 import { Checkbox } from "@/atoms/checkbox";
-import { useTaskStore } from "@/store/useTaskStore";
+import { useTaskStore, isTaskInPeriod } from "@/store/useTaskStore";
 import { KanbanBoard } from "@/organisms/KanbanBoard";
 import { WeeklyView } from "@/organisms/WeeklyView";
 import { RecurringView } from "@/organisms/RecurringView";
@@ -11,7 +11,7 @@ import { TaskDetailModal } from "@/organisms/TaskDetailModal";
 import { SettingsModal } from "@/organisms/SettingsModal";
 
 export function MainLayout() {
-  const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, openCreateModal, toggleTask, openEditModal, setSettingsModalOpen } = useTaskStore();
+  const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, allTabPeriod, openCreateModal, toggleTask, openEditModal, setSettingsModalOpen } = useTaskStore();
   const isReady = true;
 
   useEffect(() => {
@@ -38,15 +38,20 @@ export function MainLayout() {
     };
   }, [loadTasks, syncRecurringTasks]);
 
-  // 3. Filter tasks for Daily tab
-  const isDateMatch = (dateStr: string | null) => {
-    if (!dateStr) return false;
-    return dateStr.startsWith(selectedDate);
-  };
-
-  const dailyTasks = tasks.filter(t =>
-    isDateMatch(t.due_date) || (!t.due_date && t.recurrence === 'none' && isDateMatch(t.created_at))
-  );
+  const dailyTasks = tasks.filter(t => {
+    const effectiveDateStr = t.due_date || ((t.recurrence === 'none') ? t.created_at.split('T')[0] : null);
+    if (!effectiveDateStr) return false;
+    
+    // 1. 해당 날짜에 할당된 찐 오늘 작업
+    const isExactlyToday = effectiveDateStr.startsWith(selectedDate);
+    
+    // 2. 마감일 지남 + in-progress 상태 + allTabPeriod 설정 범위 내 (carry-over)
+    const isOverdueInProgress = t.status === 'in-progress' 
+      && effectiveDateStr < selectedDate 
+      && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
+      
+    return isExactlyToday || isOverdueInProgress;
+  });
 
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 
