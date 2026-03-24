@@ -18,12 +18,11 @@ export function WeeklyView() {
     // 1. 해당 주에 속하는 작업
     const isThisWeek = effectiveDate >= weekStart && effectiveDate <= weekEnd;
     
-    // 2. 마감일 지남 + in-progress 상태 + allTabPeriod 설정 범위 내 (carry-over)
-    const isOverdueInProgress = t.status === 'in-progress'
-      && effectiveDate < weekStart
+    // 2. in-progress 상태 + allTabPeriod 설정 범위 내 (항상 노출)
+    const isActiveInProgress = t.status === 'in-progress'
       && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
       
-    return isThisWeek || isOverdueInProgress;
+    return isThisWeek || isActiveInProgress;
   });
   
   const doneTasks = weeklyTasks.filter(t => t.status === 'done');

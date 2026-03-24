@@ -45,12 +45,11 @@ export function MainLayout() {
     // 1. 해당 날짜에 할당된 찐 오늘 작업
     const isExactlyToday = effectiveDateStr.startsWith(selectedDate);
     
-    // 2. 마감일 지남 + in-progress 상태 + allTabPeriod 설정 범위 내 (carry-over)
-    const isOverdueInProgress = t.status === 'in-progress' 
-      && effectiveDateStr < selectedDate 
+    // 2. in-progress 상태 + allTabPeriod 설정 범위 내 (항상 노출)
+    const isActiveInProgress = t.status === 'in-progress' 
       && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
       
-    return isExactlyToday || isOverdueInProgress;
+    return isExactlyToday || isActiveInProgress;
   });
 
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
