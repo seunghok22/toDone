@@ -15,6 +15,8 @@ export interface Task {
 interface TaskStore {
   tasks: Task[];
   error: string | null;
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
   loadTasks: () => Promise<void>;
   addTask: (title: string, category?: string, dueDate?: string | null, recurrence?: string) => Promise<void>;
   updateTaskStatus: (id: string, newStatus: 'todo' | 'in-progress' | 'done') => Promise<void>;
@@ -25,6 +27,8 @@ interface TaskStore {
 export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
   error: null,
+  selectedDate: new Date().toISOString().split('T')[0],
+  setSelectedDate: (date) => set({ selectedDate: date }),
   loadTasks: async () => {
     try {
       const db = await Database.load('sqlite:todone.db');

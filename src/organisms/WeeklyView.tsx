@@ -3,8 +3,8 @@ import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
 import { Checkbox } from "@/atoms/checkbox";
 
 export function WeeklyView() {
-  const { tasks, toggleTask, deleteTask } = useTaskStore();
-  const currentDate = new Date();
+  const { tasks, toggleTask, deleteTask, selectedDate } = useTaskStore();
+  const currentDate = new Date(selectedDate);
   
   const weekStart = startOfWeek(currentDate);
   const weekEnd = endOfWeek(currentDate);

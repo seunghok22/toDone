@@ -1,5 +1,19 @@
 # Changelog (작업 일지)
 
+## 2026-03-24 Phase 6.5: 전역 캘린더 스트립(Daily View - TaskTray) 리팩토링
+### ✨ Added (추가된 기능)
+- **전역 날짜 관리(`useTaskStore.ts`)**: Zustand 스토어에 `selectedDate` 상태를 추가하여 앱 전반의 기준 날짜를 제어하도록 업그레이드.
+- **`CalendarStrip` 가로 달력 레이아웃 도입**: Stitch MCP의 TaskTray 가이드라인을 수용하여, 메인 헤더와 탭 사이 공간에 날짜를 좌우 스크롤하며 고를 수 있는 미니 데이트픽커 바(Bar)를 전역적으로 부착.
+- **날짜 동기화 및 동적 뷰 개편**: 
+  - `Daily`, `Weekly`, `Monthly` 뷰가 단순히 '오늘' 기준이 아닌, 상단 스트립에서 **'클릭해 둔 날짜(`selectedDate`)'**를 바라보도록 의존성을 대폭 수정.
+  - 이를 통해 캘린더 스트립에서 일자를 넘겨보면서 원하는 날의 할 일, 그 주, 그 달의 할 일 현황을 매끄럽게 탐색하는 UX 달성.
+### ✨ commits (관련 커밋 리스트)
+- feat: 전역 캘린더 스트립 부착 및 날짜 기반 탭 렌더링 리팩토링
+### 🐛 Fixed (해결된 문제 및 버그)
+- 각 하위 뷰에 불필요하거나 중복되던 날짜 호출 로직 및 안 쓰이는 `React` import 정리.
+### 📝 Next Steps (다음에 진행할 추천 작업)
+- Phase 7 진행: 각 할 일 항목(행)을 눌렀을 때의 상세 모달 컴포넌트 디자인.
+
 ## 2026-03-24 Phase 6: 캘린더(Monthly) 및 주간(Weekly) 뷰 구현
 ### ✨ Added (추가된 기능)
 - `sqlite` DB: 반복 작업을 제어하기 위해 `recurrence` 컬럼(`none`, `daily`, `weekly`, `monthly`)을 새로 추가하는 **v3 마이그레이션 적용**.

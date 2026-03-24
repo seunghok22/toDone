@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/atoms/tabs";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
 import { Checkbox } from "@/atoms/checkbox";
 import { useTaskStore } from "@/store/useTaskStore";
 import { KanbanBoard } from "@/organisms/KanbanBoard";
-
 import { MonthlyView } from "@/organisms/MonthlyView";
 import { WeeklyView } from "@/organisms/WeeklyView";
+import { CalendarStrip } from "@/molecules/CalendarStrip";
 
 export function MainLayout() {
-  const { tasks, error, loadTasks, addTask, toggleTask, deleteTask } = useTaskStore();
+  const { tasks, error, loadTasks, addTask, toggleTask, deleteTask, selectedDate } = useTaskStore();
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const isReady = true;
 
@@ -19,26 +18,27 @@ export function MainLayout() {
     loadTasks();
   }, [loadTasks]);
 
-  const todayString = format(new Date(), 'yyyy-MM-dd');
-  const dailyTasks = tasks.filter(t => t.due_date === todayString || t.category === "daily");
+  const dailyTasks = tasks.filter(t => t.due_date === selectedDate || t.category === "daily");
 
   const handleAdd = async () => {
     if (!newTaskTitle.trim()) return;
-    await addTask(newTaskTitle, "daily", todayString);
+    await addTask(newTaskTitle, "daily", selectedDate);
     setNewTaskTitle("");
   };
 
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="w-full max-w-[800px] mx-auto h-screen p-6 flex flex-col gap-6 select-none bg-transparent">
-      {error && <div className="bg-destructive text-destructive-foreground p-3 rounded-md text-sm">{error}</div>}
-      <header className="flex justify-between items-center pb-2 border-b border-border/50 shrink-0">
-        <h1 className="text-2xl font-semibold text-foreground tracking-tight">toDone</h1>
+    <div className="w-full max-w-[800px] mx-auto h-screen flex flex-col select-none bg-transparent">
+      {error && <div className="bg-destructive text-destructive-foreground p-3 m-6 mb-0 rounded-md text-sm">{error}</div>}
+      <header className="flex justify-between items-center px-6 pt-6 pb-2 shrink-0">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
         <Button size="sm" variant="ghost">Settings</Button>
       </header>
       
-      <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden">
+      <CalendarStrip />
+      
+      <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden px-6 pt-4 pb-6">
         <TabsList className="mb-6 w-fit shrink-0">
           <TabsTrigger value="daily">Daily</TabsTrigger>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>

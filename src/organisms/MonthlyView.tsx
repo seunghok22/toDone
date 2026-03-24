@@ -2,8 +2,8 @@ import { useTaskStore } from "@/store/useTaskStore";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, isToday } from "date-fns";
 
 export function MonthlyView() {
-  const { tasks } = useTaskStore();
-  const currentDate = new Date();
+  const { tasks, selectedDate } = useTaskStore();
+  const currentDate = new Date(selectedDate);
   
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
