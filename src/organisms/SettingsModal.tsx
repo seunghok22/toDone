@@ -1,8 +1,13 @@
 import { useTaskStore } from "@/store/useTaskStore";
 import { Button } from "@/atoms/button";
+import { exit } from "@tauri-apps/plugin-process";
 
 export function SettingsModal() {
   const { isSettingsModalOpen, setSettingsModalOpen, allTabPeriod, setAllTabPeriod } = useTaskStore();
+
+  const handleQuit = async () => {
+    await exit(0);
+  };
 
   if (!isSettingsModalOpen) return null;
 
@@ -22,7 +27,7 @@ export function SettingsModal() {
         <div className="p-5 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-bold text-muted-foreground tracking-wider">'All' Tab Period</label>
-            <p className="text-xs text-muted-foreground mb-1">Select the time frame for tasks shown in the Kanban board. This also determines how far back overdue in-progress tasks will carry over into the Daily & Weekly tabs.</p>
+            <p className="text-xs text-muted-foreground mb-1">Select the time frame for tasks shown in the Kanban board. This also determines how far back overdue in-progress tasks will carry over into the Daily &amp; Weekly tabs.</p>
             <select
               value={allTabPeriod}
               onChange={(e) => setAllTabPeriod(e.target.value as any)}
@@ -34,6 +39,19 @@ export function SettingsModal() {
               <option value="month">Monthly (Month of Selected Date)</option>
               <option value="year">Yearly (Year of Selected Date)</option>
             </select>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
+            <label className="text-sm font-bold text-muted-foreground tracking-wider">App</label>
+            <p className="text-xs text-muted-foreground mb-1">Completely quit the toDone application and remove it from the menu bar.</p>
+            <Button
+              variant="ghost"
+              onClick={handleQuit}
+              className="w-full justify-start gap-2.5 text-destructive hover:bg-destructive/10 hover:text-destructive border border-destructive/20 rounded-lg h-10 font-medium transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Quit toDone
+            </Button>
           </div>
         </div>
 
