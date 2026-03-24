@@ -9,9 +9,11 @@ import { RecurringView } from "@/organisms/RecurringView";
 import { GlobalCalendar } from "@/molecules/GlobalCalendar";
 import { TaskDetailModal } from "@/organisms/TaskDetailModal";
 import { SettingsModal } from "@/organisms/SettingsModal";
+import { useTranslation } from "react-i18next";
 
 export function MainLayout() {
   const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, allTabPeriod, openCreateModal, toggleTask, openEditModal, setSettingsModalOpen } = useTaskStore();
+  const { t } = useTranslation();
   const isReady = true;
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export function MainLayout() {
       {error && <div className="bg-destructive text-destructive-foreground p-3 m-4 mb-0 rounded-xl text-sm">{error}</div>}
       <header className="flex justify-between items-center px-6 pt-4 pb-1 shrink-0">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
-        <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>Settings</Button>
+        <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>{t('app.settings')}</Button>
       </header>
 
       <GlobalCalendar />
@@ -71,7 +73,7 @@ export function MainLayout() {
           <div className="flex-1 overflow-y-auto pr-2 pb-2">
             <div className="flex flex-col gap-3">
               {dailyTasks.length === 0 && (
-                <p className="text-center text-muted-foreground mt-10 text-sm">No tasks for today. Add one below!</p>
+                <p className="text-center text-muted-foreground mt-10 text-sm">{t('daily.empty')}</p>
               )}
               {dailyTasks.map((task) => (
                 <div key={task.id} onClick={() => openEditModal(task)} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer">
@@ -106,7 +108,7 @@ export function MainLayout() {
               className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium h-10 rounded-lg px-3"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-              Add New Task
+              {t('daily.addTask')}
             </Button>
           </div>
         </TabsContent>
@@ -124,10 +126,10 @@ export function MainLayout() {
         </TabsContent>
 
         <TabsList className="mt-auto w-full flex shrink-0 h-12 bg-muted/50 rounded-xl p-1 gap-1">
-          <TabsTrigger value="daily" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Daily</TabsTrigger>
-          <TabsTrigger value="weekly" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Weekly</TabsTrigger>
-          <TabsTrigger value="recurring" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Recurring</TabsTrigger>
-          <TabsTrigger value="all" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">All</TabsTrigger>
+          <TabsTrigger value="daily" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">{t('tab.daily')}</TabsTrigger>
+          <TabsTrigger value="weekly" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">{t('tab.weekly')}</TabsTrigger>
+          <TabsTrigger value="recurring" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">{t('tab.recurring')}</TabsTrigger>
+          <TabsTrigger value="all" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">{t('tab.all')}</TabsTrigger>
         </TabsList>
       </Tabs>
 

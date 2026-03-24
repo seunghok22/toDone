@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTaskStore, Task, isTaskInPeriod } from "@/store/useTaskStore";
 import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
 import { Checkbox } from "@/atoms/checkbox";
+import { useTranslation } from "react-i18next";
 
 const TaskItem = ({ task }: { task: Task }) => {
   const { toggleTask, openEditModal } = useTaskStore();
@@ -27,6 +28,7 @@ const TaskItem = ({ task }: { task: Task }) => {
 
 export function WeeklyView() {
   const { tasks, selectedDate, allTabPeriod } = useTaskStore();
+  const { t } = useTranslation();
   
   const { todoTasks, doneTasks } = useMemo(() => {
     const currentDate = parseISO(selectedDate);
@@ -55,20 +57,20 @@ export function WeeklyView() {
   return (
     <div className="flex flex-col h-full w-full gap-6 overflow-y-auto pr-2 pb-4 no-scrollbar">
       <div className="flex flex-col gap-3">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Pending This Week</h3>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t('weekly.pending')}</h3>
         {todoTasks.length === 0 && (
           <div className="text-sm p-4 border border-dashed rounded-lg text-center text-muted-foreground/70 bg-muted/20">
-            No pending tasks this week.
+            {t('weekly.emptyPending')}
           </div>
         )}
         {todoTasks.map(t => <TaskItem key={t.id} task={t} />)}
       </div>
       
       <div className="flex flex-col gap-3">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Completed</h3>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t('weekly.completed')}</h3>
         {doneTasks.length === 0 && (
           <div className="text-sm p-4 border border-dashed rounded-lg text-center text-muted-foreground/70 bg-muted/20">
-            No completed tasks yet.
+            {t('weekly.emptyCompleted')}
           </div>
         )}
         {doneTasks.map(t => <TaskItem key={t.id} task={t} />)}

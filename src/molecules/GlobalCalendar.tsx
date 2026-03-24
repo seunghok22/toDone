@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useTaskStore } from "@/store/useTaskStore";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, isToday, addMonths, subMonths } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 export function GlobalCalendar() {
   const { tasks, selectedDate, setSelectedDate } = useTaskStore();
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
+  const { t } = useTranslation();
   
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(monthStart);
@@ -12,6 +14,7 @@ export function GlobalCalendar() {
   const endDate = endOfWeek(monthEnd);
   
   const days = eachDayOfInterval({ start: startDate, end: endDate });
+  const dayNames: string[] = t('calendar.days', { returnObjects: true }) as string[];
   
   // Filter out recurring tasks, keep only non-recurring with due_date
   const calendarTasks = tasks.filter(t => t.recurrence === 'none' && t.due_date);
@@ -33,7 +36,7 @@ export function GlobalCalendar() {
         </div>
       </div>
       <div className="grid grid-cols-7 mb-2">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+        {dayNames.map((day: string) => (
           <div key={day} className="text-center text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{day}</div>
         ))}
       </div>
