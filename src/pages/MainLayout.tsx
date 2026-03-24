@@ -19,6 +19,22 @@ export function MainLayout() {
       await syncRecurringTasks();
     };
     init();
+
+    // 트레이 앱 특성상 화면에 띄울 때마다(Focus) 즉시 동기화 검사
+    const handleFocus = () => {
+      syncRecurringTasks();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    // 잠자기 해제 후 혹은 화면을 계속 띄워둘 때를 대비한 1시간 보조 타이머
+    const intervalId = setInterval(() => {
+      syncRecurringTasks();
+    }, 1000 * 60 * 60);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(intervalId);
+    };
   }, [loadTasks, syncRecurringTasks]);
 
   // 3. Filter tasks for Daily tab
@@ -26,8 +42,8 @@ export function MainLayout() {
     if (!dateStr) return false;
     return dateStr.startsWith(selectedDate);
   };
-  
-  const dailyTasks = tasks.filter(t => 
+
+  const dailyTasks = tasks.filter(t =>
     isDateMatch(t.due_date) || (!t.due_date && t.recurrence === 'none' && isDateMatch(t.created_at))
   );
 
@@ -40,9 +56,9 @@ export function MainLayout() {
         <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
         <Button size="sm" variant="ghost">Settings</Button>
       </header>
-      
+
       <GlobalCalendar />
-      
+
       <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden px-6 pt-4 pb-2">
         <TabsContent value="daily" className="w-full h-full flex flex-col overflow-hidden outline-none">
           <div className="flex-1 overflow-y-auto pr-2 pb-2">
@@ -54,14 +70,14 @@ export function MainLayout() {
                 <div key={task.id} onClick={() => openEditModal(task)} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer">
                   <div className="flex items-center gap-3 flex-1 overflow-hidden">
                     <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center">
-                      <Checkbox 
-                        id={task.id} 
-                        checked={task.is_completed === 1} 
-                        onCheckedChange={() => toggleTask(task.id, task.is_completed)} 
+                      <Checkbox
+                        id={task.id}
+                        checked={task.is_completed === 1}
+                        onCheckedChange={() => toggleTask(task.id, task.is_completed)}
                       />
                     </div>
-                    <label 
-                      htmlFor={task.id} 
+                    <label
+                      htmlFor={task.id}
                       className={`text-sm font-medium leading-snug truncate pointer-events-none ${task.is_completed === 1 ? 'text-muted-foreground line-through opacity-70' : 'text-foreground'}`}
                     >
                       {task.title}
@@ -77,29 +93,29 @@ export function MainLayout() {
             </div>
           </div>
           <div className="flex shrink-0 px-1 mt-2">
-            <Button 
-              variant="ghost" 
-              onClick={() => openCreateModal(selectedDate)} 
+            <Button
+              variant="ghost"
+              onClick={() => openCreateModal(selectedDate)}
               className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium h-10 rounded-lg px-3"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
               Add New Task
             </Button>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="weekly" className="w-full h-full min-h-0 outline-none overflow-hidden flex flex-col pb-4">
           <WeeklyView />
         </TabsContent>
-        
+
         <TabsContent value="recurring" className="w-full h-full min-h-0 outline-none overflow-hidden flex flex-col pb-4">
           <RecurringView />
         </TabsContent>
-        
+
         <TabsContent value="all" className="w-full h-full min-h-0 outline-none overflow-hidden flex flex-col pb-4">
           <KanbanBoard />
         </TabsContent>
-        
+
         <TabsList className="mt-auto w-full flex shrink-0 h-12 bg-muted/50 rounded-xl p-1 gap-1">
           <TabsTrigger value="daily" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Daily</TabsTrigger>
           <TabsTrigger value="weekly" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Weekly</TabsTrigger>
@@ -107,7 +123,7 @@ export function MainLayout() {
           <TabsTrigger value="all" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">All</TabsTrigger>
         </TabsList>
       </Tabs>
-      
+
       <TaskDetailModal />
     </div>
   );
