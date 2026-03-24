@@ -1,5 +1,20 @@
 # Changelog (작업 일지)
 
+## 2026-03-24 Phase 9.1: 배포 전 성능 최적화 및 리팩토링 (Final Polish)
+### ✨ Refactored (코드 개선 및 메모리/성능 최적화)
+- **컴포넌트 리렌더링(Re-render Trap) 방어 및 메모이제이션**:
+  - `MainLayout.tsx`: 매 렌더링마다 수행되던 `dailyTasks`의 복잡한 날짜 필터링 로직을 `useMemo`로 감싸 불필요한 연산 제거.
+  - `RecurringView.tsx`: 무거운 반복 작업 그룹화(Map) 및 사이클 분류(`dailySeries`, `weeklySeries`, `monthlySeries`) 알고리즘 전체를 `useMemo`로 캐싱.
+  - `WeeklyView.tsx`: `weeklyTasks`, `doneTasks`, `todoTasks` 배열 생성 로직을 `useMemo`로 최적화.
+- **인라인 컴포넌트(Inline Component) 적출**:
+  - `WeeklyView.tsx` 내부에 선언되어 부모 렌더링 시마다 완전히 파괴되고 재생성(Unmount -> Remount)되던 `TaskItem` 컴포넌트를 모듈 스코프(전역)로 완벽히 분리해 성능 저하 및 포커스 유실 안티패턴 제거.
+- **데이터베이스 커넥션 싱글톤 캐싱 (DB Connection Pooling)**:
+  - `useTaskStore.ts`의 모든 액션에서 매번 새롭게 호출하던 `Database.load('sqlite:todone.db')`를 전역 싱글톤 패턴의 `getDb()` 함수로 추출/캐싱하여, 불필요한 플러그인 I/O 오버헤드와 다중 연결 병목 현상을 원천 차단.
+- **메모리 누수(Memory Leak) 방지 점검**:
+  - `MainLayout.tsx`의 `window.focus` 이벤트 리스너 및 `setInterval` 타이머가 컴포넌트 언마운트 시 즉각 파괴되도록 `cleanup` 반환 생명주기를 완벽히 준수하고 있는지 교차 검증 완료.
+### ✨ commits (관련 커밋 리스트)
+- refactor: 배포 전 코드 재사용성 향상 및 메모리 누수 방지 최적화
+
 ## 2026-03-24 Phase 8.3: 트레이 앱 환경 백그라운드 Recurring 동기화
 ### ✨ Added (추가된 핵심 아키텍처)
 - **장기 실행 환경 타이머 및 포커스 동기화**:

@@ -39,6 +39,14 @@ interface TaskStore {
   deleteTask: (id: string) => Promise<void>;
 }
 
+let cachedDb: Database | null = null;
+const getDb = async () => {
+  if (!cachedDb) {
+    cachedDb = await Database.load('sqlite:todone.db');
+  }
+  return cachedDb;
+};
+
 const generateNextDueDate = (current: string | null, recurrence: string) => {
   const baseDate = current ? parseISO(current) : new Date();
   let nextDate = baseDate;
@@ -97,7 +105,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   loadTasks: async () => {
     try {
-      const db = await Database.load('sqlite:todone.db');
+      const db = await getDb();
       const result = await db.select<Task[]>('SELECT * FROM tasks ORDER BY created_at DESC');
       set({ tasks: result, error: null });
     } catch (e) {
@@ -108,7 +116,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   
   saveTask: async (taskData) => {
     try {
-      const db = await Database.load('sqlite:todone.db');
+      const db = await getDb();
       if (taskData.id) {
         const { id, title, description, due_date, category, status, recurrence } = taskData;
         const isCompleted = status === 'done' ? 1 : 0;
@@ -137,7 +145,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   updateTaskStatus: async (id, newStatus) => {
     try {
-      const db = await Database.load('sqlite:todone.db');
+      const db = await getDb();
       const isCompleted = newStatus === 'done' ? 1 : 0;
       
       await db.execute('UPDATE tasks SET status = $1, is_completed = $2 WHERE id = $3', [newStatus, isCompleted, id]);
@@ -150,7 +158,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   
   toggleTask: async (id, currentStatus) => {
     try {
-      const db = await Database.load('sqlite:todone.db');
+      const db = await getDb();
       const newCompleted = currentStatus === 0 ? 1 : 0;
       const newStatus = newCompleted === 1 ? 'done' : 'todo';
 
@@ -164,7 +172,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   
   syncRecurringTasks: async () => {
     try {
-      const db = await Database.load('sqlite:todone.db');
+      const db = await getDb();
       const tasks = get().tasks;
       const recurringTasks = tasks.filter(t => t.recurrence !== 'none');
       
@@ -213,7 +221,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   deleteTask: async (id) => {
     try {
-      const db = await Database.load('sqlite:todone.db');
+      const db = await getDb();
       await db.execute('DELETE FROM tasks WHERE id = $1', [id]);
       await get().loadTasks();
     } catch (e) {

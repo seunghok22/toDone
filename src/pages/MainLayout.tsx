@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/atoms/tabs";
 import { Button } from "@/atoms/button";
 import { Checkbox } from "@/atoms/checkbox";
@@ -38,19 +38,21 @@ export function MainLayout() {
     };
   }, [loadTasks, syncRecurringTasks]);
 
-  const dailyTasks = tasks.filter(t => {
-    const effectiveDateStr = t.due_date || ((t.recurrence === 'none') ? t.created_at.split('T')[0] : null);
-    if (!effectiveDateStr) return false;
-    
-    // 1. 해당 날짜에 할당된 찐 오늘 작업
-    const isExactlyToday = effectiveDateStr.startsWith(selectedDate);
-    
-    // 2. in-progress 상태 + allTabPeriod 설정 범위 내 (항상 노출)
-    const isActiveInProgress = t.status === 'in-progress' 
-      && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
+  const dailyTasks = useMemo(() => {
+    return tasks.filter(t => {
+      const effectiveDateStr = t.due_date || ((t.recurrence === 'none') ? t.created_at.split('T')[0] : null);
+      if (!effectiveDateStr) return false;
       
-    return isExactlyToday || isActiveInProgress;
-  });
+      // 1. 해당 날짜에 할당된 찐 오늘 작업
+      const isExactlyToday = effectiveDateStr.startsWith(selectedDate);
+      
+      // 2. in-progress 상태 + allTabPeriod 설정 범위 내 (항상 노출)
+      const isActiveInProgress = t.status === 'in-progress' 
+        && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
+        
+      return isExactlyToday || isActiveInProgress;
+    });
+  }, [tasks, selectedDate, allTabPeriod]);
 
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 

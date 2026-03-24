@@ -1,34 +1,11 @@
+import { useMemo } from 'react';
 import { useTaskStore, Task, isTaskInPeriod } from "@/store/useTaskStore";
 import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
 import { Checkbox } from "@/atoms/checkbox";
 
-export function WeeklyView() {
-  const { tasks, toggleTask, openEditModal, selectedDate, allTabPeriod } = useTaskStore();
-  const currentDate = parseISO(selectedDate);
-  
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-  
-  const weeklyTasks = tasks.filter(t => {
-    if (t.recurrence === 'weekly') return true;
-    
-    const effectiveDateStr = t.due_date || t.created_at.split('T')[0];
-    const effectiveDate = parseISO(effectiveDateStr);
-    
-    // 1. 해당 주에 속하는 작업
-    const isThisWeek = effectiveDate >= weekStart && effectiveDate <= weekEnd;
-    
-    // 2. in-progress 상태 + allTabPeriod 설정 범위 내 (항상 노출)
-    const isActiveInProgress = t.status === 'in-progress'
-      && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
-      
-    return isThisWeek || isActiveInProgress;
-  });
-  
-  const doneTasks = weeklyTasks.filter(t => t.status === 'done');
-  const todoTasks = weeklyTasks.filter(t => t.status !== 'done');
-  
-  const TaskItem = ({ task }: { task: Task }) => (
+const TaskItem = ({ task }: { task: Task }) => {
+  const { toggleTask, openEditModal } = useTaskStore();
+  return (
     <div onClick={() => openEditModal(task)} className="cursor-pointer bg-card p-3 rounded-lg border border-border flex items-center gap-3 transition-colors hover:bg-muted/50 hover:border-primary/40 group shadow-sm">
       <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center shrink-0">
         <Checkbox 
@@ -46,6 +23,34 @@ export function WeeklyView() {
       )}
     </div>
   );
+};
+
+export function WeeklyView() {
+  const { tasks, selectedDate, allTabPeriod } = useTaskStore();
+  
+  const { todoTasks, doneTasks } = useMemo(() => {
+    const currentDate = parseISO(selectedDate);
+    const start = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const end = endOfWeek(currentDate, { weekStartsOn: 1 });
+    
+    const wTasks = tasks.filter(t => {
+      if (t.recurrence === 'weekly') return true;
+      
+      const effectiveDateStr = t.due_date || t.created_at.split('T')[0];
+      const effectiveDate = parseISO(effectiveDateStr);
+      
+      const isThisWeek = effectiveDate >= start && effectiveDate <= end;
+      const isActiveInProgress = t.status === 'in-progress'
+        && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
+        
+      return isThisWeek || isActiveInProgress;
+    });
+
+    return {
+      doneTasks: wTasks.filter(t => t.status === 'done'),
+      todoTasks: wTasks.filter(t => t.status !== 'done')
+    };
+  }, [tasks, selectedDate, allTabPeriod]);
 
   return (
     <div className="flex flex-col h-full w-full gap-6 overflow-y-auto pr-2 pb-4 no-scrollbar">
