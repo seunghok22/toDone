@@ -3,7 +3,10 @@ fn quit_app(app: tauri::AppHandle) {
     app.exit(0);
 }
 
-use tauri::{tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent}, Manager};
+use tauri::{
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Manager,
+};
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -39,23 +42,36 @@ pub fn run() {
             description: "add_description_column",
             sql: "ALTER TABLE tasks ADD COLUMN description TEXT;",
             kind: MigrationKind::Up,
-        }
+        },
     ];
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_sql::Builder::default().add_migrations("sqlite:todone.db", migrations).build())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations("sqlite:todone.db", migrations)
+                .build(),
+        )
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            let icon = app.default_window_icon().cloned().expect("Missing default window icon");
-            
+            let icon = app
+                .default_window_icon()
+                .cloned()
+                .expect("Missing default window icon");
+
             let _tray = TrayIconBuilder::new()
                 .icon(icon)
                 .on_tray_icon_event(|tray, event| match event {
-                    TrayIconEvent::Click { rect, button, button_state, .. } => {
+                    TrayIconEvent::Click {
+                        rect,
+                        button,
+                        button_state,
+                        ..
+                    } => {
                         if button == MouseButton::Left && button_state == MouseButtonState::Up {
                             let app = tray.app_handle();
                             if let Some(window) = app.get_webview_window("main") {
@@ -65,19 +81,21 @@ pub fn run() {
                                     let sf = window.scale_factor().unwrap_or(1.0);
                                     let pos = rect.position.to_physical::<f64>(sf);
                                     let size = rect.size.to_physical::<f64>(sf);
-                                    
+
                                     let tray_x = pos.x as i32;
                                     let tray_y = pos.y as i32;
                                     let tray_width = size.width as i32;
                                     let tray_bottom_y = tray_y + size.height as i32;
-                                    
+
                                     let window_size = window.outer_size().unwrap();
                                     let window_w = window_size.width as i32;
                                     let window_h = window_size.height as i32;
 
                                     // Get monitor height to decide open direction
-                                    let screen_h = window.current_monitor()
-                                        .ok().flatten()
+                                    let screen_h = window
+                                        .current_monitor()
+                                        .ok()
+                                        .flatten()
                                         .map(|m| m.size().height as i32)
                                         .unwrap_or(1080);
 
@@ -95,8 +113,10 @@ pub fn run() {
                                         tray_bottom_y
                                     };
 
-                                    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
-                                    
+                                    let _ = window.set_position(tauri::Position::Physical(
+                                        tauri::PhysicalPosition { x, y },
+                                    ));
+
                                     window.show().unwrap();
                                     window.set_focus().unwrap();
                                 }
@@ -108,9 +128,14 @@ pub fn run() {
                 .build(app)?;
 
             let window = app.get_webview_window("main").unwrap();
-            
+
             #[cfg(target_os = "macos")]
-            let _ = window_vibrancy::apply_vibrancy(&window, window_vibrancy::NSVisualEffectMaterial::HudWindow, None, Some(12.0));
+            let _ = window_vibrancy::apply_vibrancy(
+                &window,
+                window_vibrancy::NSVisualEffectMaterial::HudWindow,
+                None,
+                Some(12.0),
+            );
 
             let window_clone = window.clone();
             window.on_window_event(move |event| {

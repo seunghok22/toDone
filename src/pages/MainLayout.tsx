@@ -10,11 +10,14 @@ import { GlobalCalendar } from "@/molecules/GlobalCalendar";
 import { TaskDetailModal } from "@/organisms/TaskDetailModal";
 import { SettingsModal } from "@/organisms/SettingsModal";
 import { useTranslation } from "react-i18next";
+import { useAutoUpdater } from "@/hooks/useAutoUpdater";
+import { UpdateModal } from "@/organisms/UpdateModal";
 
 export function MainLayout() {
   const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, allTabPeriod, openCreateModal, toggleTask, openEditModal, setSettingsModalOpen } = useTaskStore();
   const { t } = useTranslation();
   const isReady = true;
+  const updater = useAutoUpdater() as any;
 
   useEffect(() => {
     const init = async () => {
@@ -32,6 +35,9 @@ export function MainLayout() {
     // 잠자기 해제 후 혹은 화면을 계속 띄워둘 때를 대비한 1시간 보조 타이머
     const intervalId = setInterval(() => {
       syncRecurringTasks();
+      if (updater && typeof updater.checkForUpdates === 'function') {
+        updater.checkForUpdates();
+      }
     }, 1000 * 60 * 60);
 
     return () => {
@@ -44,14 +50,14 @@ export function MainLayout() {
     return tasks.filter(t => {
       const effectiveDateStr = t.due_date || ((t.recurrence === 'none') ? t.created_at.split('T')[0] : null);
       if (!effectiveDateStr) return false;
-      
+
       // 1. 해당 날짜에 할당된 찐 오늘 작업
       const isExactlyToday = effectiveDateStr.startsWith(selectedDate);
-      
+
       // 2. in-progress 상태 + allTabPeriod 설정 범위 내 (항상 노출)
-      const isActiveInProgress = t.status === 'in-progress' 
+      const isActiveInProgress = t.status === 'in-progress'
         && isTaskInPeriod(effectiveDateStr, selectedDate, allTabPeriod);
-        
+
       return isExactlyToday || isActiveInProgress;
     });
   }, [tasks, selectedDate, allTabPeriod]);
@@ -135,6 +141,7 @@ export function MainLayout() {
 
       <TaskDetailModal />
       <SettingsModal />
+      <UpdateModal />
     </div>
   );
 }

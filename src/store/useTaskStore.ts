@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import Database from '@tauri-apps/plugin-sql';
 import { addDays, addWeeks, addMonths, parseISO, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import type { Update } from '@tauri-apps/plugin-updater';
 
 export interface Task {
   id: string;
@@ -37,6 +38,12 @@ interface TaskStore {
   updateTaskStatus: (id: string, newStatus: 'todo' | 'in-progress' | 'done') => Promise<void>;
   toggleTask: (id: string, currentStatus: number) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+
+  // Auto updater
+  pendingUpdate: Update | null;
+  setPendingUpdate: (update: Update | null) => void;
+  isUpdateModalOpen: boolean;
+  setUpdateModalOpen: (isOpen: boolean) => void;
 }
 
 let cachedDb: Database | null = null;
@@ -96,6 +103,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     localStorage.setItem('allTabPeriod', period);
     set({ allTabPeriod: period });
   },
+
+  // Auto updater
+  pendingUpdate: null,
+  setPendingUpdate: (update) => set({ pendingUpdate: update }),
+  isUpdateModalOpen: false,
+  setUpdateModalOpen: (isOpen) => set({ isUpdateModalOpen: isOpen }),
 
   openCreateModal: (defaultDate) => {
     set({ isModalOpen: true, editingTask: { id: '', title: '', status: 'todo', is_completed: 0, recurrence: 'none', due_date: defaultDate || get().selectedDate, category: 'daily', created_at: '' } as Task });

@@ -45,6 +45,17 @@ const resources = {
       'settings.quit': 'Quit toDone',
       'settings.language.label': 'Language',
       'settings.language.desc': 'Choose the display language for the app.',
+      'settings.version': 'Version',
+      'settings.update.available': 'Update to v{{version}}',
+      'settings.update.latest': 'Up to date',
+
+      // Update Modal
+      'update.title': 'Update Available',
+      'update.available': 'v{{version}} is ready to install.',
+      'update.description': 'A new version of toDone is available. Install now for the latest improvements and fixes.',
+      'update.later': 'Later',
+      'update.install': 'Install & Restart',
+      'update.installing': 'Installing...',
 
       // Task Detail Modal
       'modal.title.create': 'New Task',
@@ -109,6 +120,17 @@ const resources = {
       'settings.quit': 'Quit toDone',
       'settings.language.label': 'Language',
       'settings.language.desc': '앱 표시 언어를 선택해요.',
+      'settings.version': '버전',
+      'settings.update.available': 'v{{version}}으로 업데이트',
+      'settings.update.latest': '최신 버전입니다',
+
+      // Update Modal
+      'update.title': '업데이트',
+      'update.available': 'v{{version}}을 설치할 준비가 됐어요.',
+      'update.description': 'toDone 새 버전이 출시됐어요. 지금 설치하면 최신 개선 사항과 수정 사항을 바로 사용할 수 있어요.',
+      'update.later': '나중에',
+      'update.install': '설치 및 재시작',
+      'update.installing': '설치 중...',
 
       // Task Detail Modal
       'modal.title.create': '새 할 일',
