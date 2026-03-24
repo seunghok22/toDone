@@ -57,9 +57,13 @@ export function MainLayout() {
               ))}
             </div>
           </div>
-          <div className="flex gap-2 mt-4 shrink-0 px-1 pb-1">
-            <Button onClick={() => openCreateModal(selectedDate)} className="shadow-sm w-full font-bold h-11 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          <div className="flex shrink-0 px-1 mt-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => openCreateModal(selectedDate)} 
+              className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 font-medium h-10 rounded-lg px-3"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
               Add New Task
             </Button>
           </div>
