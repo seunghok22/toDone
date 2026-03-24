@@ -29,6 +29,11 @@ interface TaskStore {
   closeModal: () => void;
   saveTask: (taskData: Partial<Task>) => Promise<void>;
 
+  isSettingsModalOpen: boolean;
+  setSettingsModalOpen: (isOpen: boolean) => void;
+  allTabPeriod: 'all' | 'day' | 'week' | 'month';
+  setAllTabPeriod: (period: 'all' | 'day' | 'week' | 'month') => void;
+
   updateTaskStatus: (id: string, newStatus: 'todo' | 'in-progress' | 'done') => Promise<void>;
   toggleTask: (id: string, currentStatus: number) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -52,6 +57,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   
   isModalOpen: false,
   editingTask: null,
+  
+  isSettingsModalOpen: false,
+  setSettingsModalOpen: (isOpen) => set({ isSettingsModalOpen: isOpen }),
+  allTabPeriod: (localStorage.getItem('allTabPeriod') as any) || 'all',
+  setAllTabPeriod: (period) => {
+    localStorage.setItem('allTabPeriod', period);
+    set({ allTabPeriod: period });
+  },
+
   openCreateModal: (defaultDate) => {
     set({ isModalOpen: true, editingTask: { id: '', title: '', status: 'todo', is_completed: 0, recurrence: 'none', due_date: defaultDate || get().selectedDate, category: 'daily', created_at: '' } as Task });
   },

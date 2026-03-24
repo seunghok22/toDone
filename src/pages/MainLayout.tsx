@@ -8,9 +8,10 @@ import { WeeklyView } from "@/organisms/WeeklyView";
 import { RecurringView } from "@/organisms/RecurringView";
 import { GlobalCalendar } from "@/molecules/GlobalCalendar";
 import { TaskDetailModal } from "@/organisms/TaskDetailModal";
+import { SettingsModal } from "@/organisms/SettingsModal";
 
 export function MainLayout() {
-  const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, openCreateModal, toggleTask, openEditModal } = useTaskStore();
+  const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, openCreateModal, toggleTask, openEditModal, setSettingsModalOpen } = useTaskStore();
   const isReady = true;
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export function MainLayout() {
       {error && <div className="bg-destructive text-destructive-foreground p-3 m-6 mb-0 rounded-md text-sm">{error}</div>}
       <header className="flex justify-between items-center px-6 pt-6 pb-2 shrink-0">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
-        <Button size="sm" variant="ghost">Settings</Button>
+        <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>Settings</Button>
       </header>
 
       <GlobalCalendar />
@@ -125,6 +126,7 @@ export function MainLayout() {
       </Tabs>
 
       <TaskDetailModal />
+      <SettingsModal />
     </div>
   );
 }

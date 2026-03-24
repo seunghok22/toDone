@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { DndContext, useDraggable, useDroppable, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
 import { Task, useTaskStore } from '@/store/useTaskStore';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 
 function KanbanColumn({ id, title, tasks }: { id: string, title: string, tasks: Task[] }) {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -48,7 +49,7 @@ function KanbanCard({ task }: { task: Task }) {
 }
 
 export function KanbanBoard() {
-  const { tasks, updateTaskStatus } = useTaskStore();
+  const { tasks, updateTaskStatus, selectedDate, allTabPeriod } = useTaskStore();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -69,18 +70,43 @@ export function KanbanBoard() {
     }
   };
 
-  const todoTasks = tasks.filter(t => t.status === 'todo');
-  const inProgressTasks = tasks.filter(t => t.status === 'in-progress');
-  const doneTasks = tasks.filter(t => t.status === 'done');
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(t => {
+      if (allTabPeriod === 'all') return true;
+      
+      const effectiveDateStr = t.due_date || t.created_at.split('T')[0];
+      const effectiveDate = parseISO(effectiveDateStr);
+      const pivotDate = parseISO(selectedDate);
+
+      if (allTabPeriod === 'day') {
+        return effectiveDateStr === selectedDate;
+      } else if (allTabPeriod === 'week') {
+        const start = startOfWeek(pivotDate, { weekStartsOn: 1 });
+        const end = endOfWeek(pivotDate, { weekStartsOn: 1 });
+        return effectiveDate >= start && effectiveDate <= end;
+      } else if (allTabPeriod === 'month') {
+        const start = startOfMonth(pivotDate);
+        const end = endOfMonth(pivotDate);
+        return effectiveDate >= start && effectiveDate <= end;
+      }
+      return true;
+    });
+  }, [tasks, allTabPeriod, selectedDate]);
+
+  const columns = [
+    { id: 'todo', title: 'To Do', items: filteredTasks.filter(t => t.status === 'todo') },
+    { id: 'in-progress', title: 'In Progress', items: filteredTasks.filter(t => t.status === 'in-progress') },
+    { id: 'done', title: 'Done', items: filteredTasks.filter(t => t.status === 'done') },
+  ];
 
   const activeTask = activeId ? tasks.find(t => t.id === activeId) : null;
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 w-full h-full pb-2">
-        <KanbanColumn id="todo" title="To Do" tasks={todoTasks} />
-        <KanbanColumn id="in-progress" title="In Progress" tasks={inProgressTasks} />
-        <KanbanColumn id="done" title="Done" tasks={doneTasks} />
+        {columns.map(col => (
+          <KanbanColumn key={col.id} id={col.id} title={col.title} tasks={col.items} />
+        ))}
       </div>
       
       <DragOverlay dropAnimation={{ duration: 250, easing: 'ease-out' }}>
