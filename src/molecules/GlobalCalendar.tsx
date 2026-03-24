@@ -20,7 +20,7 @@ export function GlobalCalendar() {
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   
   return (
-    <div className="flex flex-col w-full shrink-0 border-b border-white/10 bg-card/30 backdrop-blur-lg p-3 z-10">
+    <div className="flex flex-col w-full shrink-0 border border-white/10 bg-card/30 backdrop-blur-lg p-3 z-10 mx-3 rounded-xl" style={{width: 'calc(100% - 1.5rem)'}}>
       <div className="flex items-center justify-between mb-2 px-2">
         <h2 className="text-sm font-bold text-foreground tracking-tight">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex gap-1">
