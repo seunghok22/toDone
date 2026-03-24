@@ -4,7 +4,7 @@ import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
 
 export function TaskDetailModal() {
-  const { isModalOpen, editingTask, closeModal, saveTask, deleteTask } = useTaskStore();
+  const { isModalOpen, closeModal, editingTask, saveTask, deleteTask, selectedDate } = useTaskStore();
   
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -28,15 +28,21 @@ export function TaskDetailModal() {
 
   const handleSave = () => {
     if (!title.trim()) return;
+
+    let finalDueDate = dueDate;
+    if (recurrence !== 'none' && !finalDueDate) {
+      finalDueDate = selectedDate; // Automatically secure a start date for recurring tasks
+    }
+
     saveTask({
       id: isEditMode ? editingTask.id : undefined,
       title,
       description,
-      due_date: dueDate || null,
+      due_date: finalDueDate || undefined,
       status,
-      recurrence,
-      category: editingTask.category
+      recurrence
     });
+    closeModal();
   };
 
   const handleDelete = () => {

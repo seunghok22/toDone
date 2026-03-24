@@ -17,7 +17,15 @@ export function MainLayout() {
     loadTasks();
   }, [loadTasks]);
 
-  const dailyTasks = tasks.filter(t => t.due_date === selectedDate || t.category === "daily");
+  // 3. Filter tasks for Daily tab
+  const isDateMatch = (dateStr: string | null) => {
+    if (!dateStr) return false;
+    return dateStr.startsWith(selectedDate);
+  };
+  
+  const dailyTasks = tasks.filter(t => 
+    t.category === 'daily' || isDateMatch(t.due_date) || (!t.due_date && t.recurrence === 'none' && isDateMatch(t.created_at))
+  );
 
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 

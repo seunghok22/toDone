@@ -19,11 +19,10 @@ export function RecurringView() {
   
   // 2. For each series, figure out the status for the current cycle
   const seriesData = Array.from(seriesMap.values()).map((instances) => {
-    // sort instances by due_date descending to get the latest easily
+    // sort instances by effective date descending to get the latest easily
     instances.sort((a, b) => {
-      const dateA = a.due_date ? parseISO(a.due_date).getTime() : 0;
-      const dateB = b.due_date ? parseISO(b.due_date).getTime() : 0;
-      return dateB - dateA; // descending
+      const getEffectiveDate = (t: Task) => t.due_date ? parseISO(t.due_date).getTime() : parseISO(t.created_at).getTime();
+      return getEffectiveDate(b) - getEffectiveDate(a); // descending
     });
 
     const recurrenceType = instances[0].recurrence;
@@ -34,10 +33,10 @@ export function RecurringView() {
     const currentWeekEnd = endOfWeek(currentDate);
 
     let currentCycleInstance = instances.find(t => {
-      if (!t.due_date) return false;
-      const tDate = parseISO(t.due_date);
+      const effectiveStr = t.due_date || t.created_at.split('T')[0];
+      const tDate = parseISO(effectiveStr);
       if (recurrenceType === 'daily') {
-        return t.due_date === currentSelectedIso;
+        return effectiveStr === currentSelectedIso;
       } else if (recurrenceType === 'weekly') {
         return tDate >= currentWeekStart && tDate <= currentWeekEnd;
       } else if (recurrenceType === 'monthly') {

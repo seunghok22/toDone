@@ -44,7 +44,8 @@ const generateNextDueDate = (current: string | null, recurrence: string) => {
 
 const handleRecurringTaskCreation = async (db: Database, task: Task) => {
   if (task.recurrence !== 'none') {
-    const newDueDate = generateNextDueDate(task.due_date, task.recurrence);
+    const effectiveDueDate = task.due_date || task.created_at.split('T')[0];
+    const newDueDate = generateNextDueDate(effectiveDueDate, task.recurrence);
     
     const existing = await db.select<Task[]>('SELECT id FROM tasks WHERE title = $1 AND recurrence = $2 AND due_date = $3', [task.title, task.recurrence, newDueDate]);
     if (existing && existing.length > 0) {
