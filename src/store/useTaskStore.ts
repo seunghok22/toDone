@@ -85,10 +85,17 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       if (taskData.id) {
         const { id, title, description, due_date, category, status, recurrence } = taskData;
         const isCompleted = status === 'done' ? 1 : 0;
+        const originalTask = get().tasks.find(t => t.id === id);
+        
         await db.execute(
           'UPDATE tasks SET title = $1, description = $2, due_date = $3, category = $4, status = $5, is_completed = $6, recurrence = $7 WHERE id = $8',
           [title, description || null, due_date || null, category || null, status, isCompleted, recurrence || 'none', id]
         );
+        
+        if (status === 'done' && originalTask && originalTask.status !== 'done') {
+           const updatedTask = { ...originalTask, title: title || originalTask.title, due_date: due_date || originalTask.due_date, recurrence: recurrence || originalTask.recurrence } as Task;
+           await handleRecurringTaskCreation(db, updatedTask);
+        }
       } else {
         const id = Date.now().toString() + Math.random().toString(36).substring(2);
         const { title, description, due_date, category, recurrence } = taskData;

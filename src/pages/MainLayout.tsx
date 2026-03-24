@@ -41,12 +41,13 @@ export function MainLayout() {
               {dailyTasks.map((task) => (
                 <div key={task.id} onClick={() => openEditModal(task)} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer">
                   <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                    <Checkbox 
-                      id={task.id} 
-                      checked={task.is_completed === 1} 
-                      onCheckedChange={() => toggleTask(task.id, task.is_completed)} 
-                      onClick={e => e.stopPropagation()}
-                    />
+                    <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center">
+                      <Checkbox 
+                        id={task.id} 
+                        checked={task.is_completed === 1} 
+                        onCheckedChange={() => toggleTask(task.id, task.is_completed)} 
+                      />
+                    </div>
                     <label 
                       htmlFor={task.id} 
                       className={`text-sm font-medium leading-snug truncate pointer-events-none ${task.is_completed === 1 ? 'text-muted-foreground line-through opacity-70' : 'text-foreground'}`}

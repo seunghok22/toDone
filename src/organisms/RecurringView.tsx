@@ -90,11 +90,12 @@ export function RecurringView() {
               className="bg-card p-3.5 rounded-xl border border-border flex items-center justify-between gap-3 transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer"
             >
               <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                <Checkbox 
-                  checked={item.isCompleted} 
-                  onCheckedChange={() => toggleTask(item.taskRef.id, item.taskRef.is_completed)} 
-                  onClick={e => e.stopPropagation()}
-                />
+                <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center">
+                  <Checkbox 
+                    checked={item.isCompleted} 
+                    onCheckedChange={() => toggleTask(item.taskRef.id, item.taskRef.is_completed)} 
+                  />
+                </div>
                 <span className={`text-sm font-medium truncate pointer-events-none ${item.isCompleted ? 'text-muted-foreground line-through opacity-70' : 'text-foreground'}`}>
                   {item.title}
                 </span>

@@ -27,11 +27,12 @@ export function WeeklyView() {
   
   const TaskItem = ({ task }: { task: Task }) => (
     <div onClick={() => openEditModal(task)} className="cursor-pointer bg-card p-3 rounded-lg border border-border flex items-center gap-3 transition-colors hover:bg-muted/50 hover:border-primary/40 group shadow-sm">
-      <Checkbox 
-        checked={task.status === 'done'}
-        onCheckedChange={() => toggleTask(task.id, task.is_completed)}
-        onClick={e => e.stopPropagation()}
-      />
+      <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center shrink-0">
+        <Checkbox 
+          checked={task.status === 'done'}
+          onCheckedChange={() => toggleTask(task.id, task.is_completed)}
+        />
+      </div>
       <span className={`text-sm flex-1 truncate ${task.status === 'done' ? 'line-through text-muted-foreground opacity-70' : 'text-foreground font-medium'}`}>
         {task.title}
       </span>
