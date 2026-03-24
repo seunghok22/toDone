@@ -173,11 +173,11 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   syncRecurringTasks: async () => {
     try {
       const db = await getDb();
-      const tasks = get().tasks;
-      const recurringTasks = tasks.filter(t => t.recurrence !== 'none');
+      // Always fetch fresh from DB to avoid acting on stale in-memory state
+      const allTasks = await db.select<Task[]>('SELECT * FROM tasks WHERE recurrence != $1', ['none']);
       
       const seriesMap = new Map<string, Task[]>();
-      recurringTasks.forEach(t => {
+      allTasks.forEach(t => {
         const key = `${t.title}-${t.recurrence}`;
         if (!seriesMap.has(key)) seriesMap.set(key, []);
         seriesMap.get(key)!.push(t);
