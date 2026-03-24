@@ -5,6 +5,7 @@ import { Checkbox } from "@/atoms/checkbox";
 import { useTaskStore } from "@/store/useTaskStore";
 import { KanbanBoard } from "@/organisms/KanbanBoard";
 import { WeeklyView } from "@/organisms/WeeklyView";
+import { RecurringView } from "@/organisms/RecurringView";
 import { GlobalCalendar } from "@/molecules/GlobalCalendar";
 import { TaskDetailModal } from "@/organisms/TaskDetailModal";
 
@@ -69,9 +70,14 @@ export function MainLayout() {
           </div>
         </TabsContent>
         
-        <TabsContent value="weekly" className="w-full flex-1 outline-none overflow-hidden pb-4">
+        <TabsContent value="weekly" className="w-full h-full min-h-0 outline-none overflow-hidden flex flex-col pb-4">
           <WeeklyView />
         </TabsContent>
+        
+        <TabsContent value="recurring" className="w-full h-full min-h-0 outline-none overflow-hidden flex flex-col pb-4">
+          <RecurringView />
+        </TabsContent>
+        
         <TabsContent value="all" className="w-full h-full min-h-0 outline-none overflow-hidden flex flex-col pb-4">
           <KanbanBoard />
         </TabsContent>
@@ -79,6 +85,7 @@ export function MainLayout() {
         <TabsList className="mt-auto w-full flex shrink-0 h-12 bg-muted/50 rounded-xl p-1 gap-1">
           <TabsTrigger value="daily" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Daily</TabsTrigger>
           <TabsTrigger value="weekly" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Weekly</TabsTrigger>
+          <TabsTrigger value="recurring" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Recurring</TabsTrigger>
           <TabsTrigger value="all" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">All</TabsTrigger>
         </TabsList>
       </Tabs>
