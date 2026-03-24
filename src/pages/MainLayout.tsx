@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/atoms/tabs";
 import { Button } from "@/atoms/button";
-import { Input } from "@/atoms/input";
 import { Checkbox } from "@/atoms/checkbox";
 import { useTaskStore } from "@/store/useTaskStore";
 import { KanbanBoard } from "@/organisms/KanbanBoard";
 import { WeeklyView } from "@/organisms/WeeklyView";
 import { GlobalCalendar } from "@/molecules/GlobalCalendar";
+import { TaskDetailModal } from "@/organisms/TaskDetailModal";
 
 export function MainLayout() {
-  const { tasks, error, loadTasks, addTask, toggleTask, deleteTask, selectedDate } = useTaskStore();
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const { tasks, error, loadTasks, toggleTask, openCreateModal, openEditModal, selectedDate } = useTaskStore();
   const isReady = true;
 
   useEffect(() => {
@@ -18,12 +17,6 @@ export function MainLayout() {
   }, [loadTasks]);
 
   const dailyTasks = tasks.filter(t => t.due_date === selectedDate || t.category === "daily");
-
-  const handleAdd = async () => {
-    if (!newTaskTitle.trim()) return;
-    await addTask(newTaskTitle, "daily", selectedDate);
-    setNewTaskTitle("");
-  };
 
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 
@@ -45,42 +38,30 @@ export function MainLayout() {
                 <p className="text-center text-muted-foreground mt-10 text-sm">No tasks for today. Add one below!</p>
               )}
               {dailyTasks.map((task) => (
-                <div key={task.id} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-colors hover:bg-card/80">
+                <div key={task.id} onClick={() => openEditModal(task)} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer">
                   <div className="flex items-center gap-3 flex-1 overflow-hidden">
                     <Checkbox 
                       id={task.id} 
                       checked={task.is_completed === 1} 
                       onCheckedChange={() => toggleTask(task.id, task.is_completed)} 
+                      onClick={e => e.stopPropagation()}
                     />
                     <label 
                       htmlFor={task.id} 
-                      className={`text-sm font-medium leading-snug truncate transition-all cursor-pointer ${task.is_completed === 1 ? 'text-muted-foreground line-through opacity-70' : 'text-foreground'}`}
+                      className={`text-sm font-medium leading-snug truncate pointer-events-none ${task.is_completed === 1 ? 'text-muted-foreground line-through opacity-70' : 'text-foreground'}`}
                     >
                       {task.title}
                     </label>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    tabIndex={-1}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity size-7 text-destructive hover:text-destructive hover:bg-destructive/10" 
-                    onClick={() => deleteTask(task.id)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                  </Button>
                 </div>
               ))}
             </div>
           </div>
           <div className="flex gap-2 mt-4 shrink-0 px-1 pb-1">
-            <Input 
-              placeholder="Add a new daily task..." 
-              className="flex-1 bg-input !border-none shadow-sm focus-visible:ring-1" 
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            />
-            <Button onClick={handleAdd} className="shadow-sm">Add</Button>
+            <Button onClick={() => openCreateModal(selectedDate)} className="shadow-sm w-full font-bold h-11 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Add New Task
+            </Button>
           </div>
         </TabsContent>
         
@@ -97,6 +78,8 @@ export function MainLayout() {
           <TabsTrigger value="all" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">All</TabsTrigger>
         </TabsList>
       </Tabs>
+      
+      <TaskDetailModal />
     </div>
   );
 }

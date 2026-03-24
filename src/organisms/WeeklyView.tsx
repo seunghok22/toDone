@@ -3,7 +3,7 @@ import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
 import { Checkbox } from "@/atoms/checkbox";
 
 export function WeeklyView() {
-  const { tasks, toggleTask, deleteTask, selectedDate } = useTaskStore();
+  const { tasks, toggleTask, openEditModal, selectedDate } = useTaskStore();
   const currentDate = new Date(selectedDate);
   
   const weekStart = startOfWeek(currentDate);
@@ -26,10 +26,11 @@ export function WeeklyView() {
   const todoTasks = weeklyTasks.filter(t => t.status !== 'done');
   
   const TaskItem = ({ task }: { task: Task }) => (
-    <div className="bg-card p-3 rounded-lg border border-border flex items-center gap-3 transition-colors hover:bg-muted/50 group shadow-sm">
+    <div onClick={() => openEditModal(task)} className="cursor-pointer bg-card p-3 rounded-lg border border-border flex items-center gap-3 transition-colors hover:bg-muted/50 hover:border-primary/40 group shadow-sm">
       <Checkbox 
         checked={task.status === 'done'}
         onCheckedChange={() => toggleTask(task.id, task.is_completed)}
+        onClick={e => e.stopPropagation()}
       />
       <span className={`text-sm flex-1 truncate ${task.status === 'done' ? 'line-through text-muted-foreground opacity-70' : 'text-foreground font-medium'}`}>
         {task.title}
@@ -39,12 +40,6 @@ export function WeeklyView() {
           Weekly
         </span>
       )}
-      <button 
-        onClick={() => deleteTask(task.id)}
-        className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10 p-1.5 rounded-md"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-      </button>
     </div>
   );
 

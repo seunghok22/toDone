@@ -18,6 +18,7 @@ function KanbanColumn({ id, title, tasks }: { id: string, title: string, tasks: 
 }
 
 function KanbanCard({ task }: { task: Task }) {
+  const { openEditModal } = useTaskStore();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: task.id,
     data: { task }
@@ -33,6 +34,7 @@ function KanbanCard({ task }: { task: Task }) {
       style={style}
       {...listeners}
       {...attributes}
+      onClick={() => openEditModal(task)}
       className={`bg-card p-3 rounded-lg border shadow-sm cursor-grab active:cursor-grabbing flex items-center justify-between hover:border-foreground/20 transition-colors ${task.status === 'done' ? 'line-through text-muted-foreground bg-muted/50' : 'border-border text-foreground'}`}
     >
       <span className="text-sm font-medium leading-snug">{task.title}</span>

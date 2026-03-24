@@ -34,6 +34,12 @@ pub fn run() {
             description: "add_recurrence_column",
             sql: "ALTER TABLE tasks ADD COLUMN recurrence TEXT NOT NULL DEFAULT 'none';",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 4,
+            description: "add_description_column",
+            sql: "ALTER TABLE tasks ADD COLUMN description TEXT;",
+            kind: MigrationKind::Up,
         }
     ];
 
