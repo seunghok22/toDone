@@ -37,13 +37,7 @@ export function MainLayout() {
       
       <GlobalCalendar />
       
-      <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden px-6 pt-4 pb-6">
-        <TabsList className="mb-4 w-fit shrink-0">
-          <TabsTrigger value="daily">Daily</TabsTrigger>
-          <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="all">All</TabsTrigger>
-        </TabsList>
-        
+      <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden px-6 pt-4 pb-2">
         <TabsContent value="daily" className="w-full h-full flex flex-col overflow-hidden outline-none">
           <div className="flex-1 overflow-y-auto pr-2 pb-2">
             <div className="flex flex-col gap-3">
@@ -93,9 +87,15 @@ export function MainLayout() {
         <TabsContent value="weekly" className="w-full flex-1 outline-none overflow-hidden pb-4">
           <WeeklyView />
         </TabsContent>
-        <TabsContent value="all" className="w-full flex-1 outline-none overflow-hidden flex flex-col">
+        <TabsContent value="all" className="w-full h-full min-h-0 outline-none overflow-hidden flex flex-col pb-4">
           <KanbanBoard />
         </TabsContent>
+        
+        <TabsList className="mt-auto w-full flex shrink-0 h-12 bg-muted/50 rounded-xl p-1 gap-1">
+          <TabsTrigger value="daily" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Daily</TabsTrigger>
+          <TabsTrigger value="weekly" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">Weekly</TabsTrigger>
+          <TabsTrigger value="all" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">All</TabsTrigger>
+        </TabsList>
       </Tabs>
     </div>
   );
