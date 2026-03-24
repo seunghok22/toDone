@@ -63,6 +63,7 @@ const resources = {
       'modal.status.done': 'Done',
       'modal.save': 'Save',
       'modal.delete': 'Delete',
+      'modal.cancel': 'Cancel',
     }
   },
   ko: {
@@ -126,6 +127,7 @@ const resources = {
       'modal.status.done': '완료',
       'modal.save': '저장',
       'modal.delete': '삭제',
+      'modal.cancel': '취소',
     }
   }
 };

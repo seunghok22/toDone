@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useTaskStore } from "@/store/useTaskStore";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
+import { useTranslation } from "react-i18next";
 
 export function TaskDetailModal() {
   const { isModalOpen, closeModal, editingTask, saveTask, deleteTask, selectedDate } = useTaskStore();
+  const { t } = useTranslation();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -31,7 +33,7 @@ export function TaskDetailModal() {
 
     let finalDueDate = dueDate;
     if (recurrence !== 'none' && !finalDueDate) {
-      finalDueDate = selectedDate; // Automatically secure a start date for recurring tasks
+      finalDueDate = selectedDate;
     }
 
     saveTask({
@@ -55,7 +57,7 @@ export function TaskDetailModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-card w-full max-w-md rounded-2xl shadow-xl border border-border flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center p-4 border-b border-border bg-muted/20">
-          <h2 className="text-lg font-bold tracking-tight">{isEditMode ? "Edit Task" : "New Task"}</h2>
+          <h2 className="text-lg font-bold tracking-tight">{isEditMode ? t('modal.title.edit') : t('modal.title.create')}</h2>
           <Button variant="ghost" size="icon" onClick={closeModal} className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
           </Button>
@@ -63,63 +65,62 @@ export function TaskDetailModal() {
 
         <div className="p-5 flex flex-col gap-5 overflow-y-auto max-h-[70vh] no-scrollbar">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Title</label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Task title..." className="font-semibold text-base py-5" autoFocus />
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('modal.field.title')}</label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={t('modal.field.title') + '...'} className="font-semibold text-base py-5" autoFocus />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('modal.field.description')}</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="Add details, notes, or sub-items..."
+              placeholder={t('modal.field.description') + '...'}
               className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Due Date</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('modal.field.dueDate')}</label>
               <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="shadow-sm" />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('modal.field.status')}</label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value as any)}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 font-medium"
               >
-                <option value="todo">To Do</option>
-                <option value="in-progress">In Progress</option>
-                <option value="done">Done</option>
+                <option value="todo">{t('modal.status.todo')}</option>
+                <option value="in-progress">{t('modal.status.inProgress')}</option>
+                <option value="done">{t('modal.status.done')}</option>
               </select>
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Recurrence</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('modal.field.recurrence')}</label>
             <select
               value={recurrence}
               onChange={e => setRecurrence(e.target.value as any)}
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 font-medium"
             >
-              <option value="none">None (One-time)</option>
-              <option value="daily">Daily (Every day)</option>
-              <option value="weekly">Weekly (Every week)</option>
-              <option value="monthly">Monthly (Every month)</option>
+              <option value="none">{t('modal.recurrence.none')}</option>
+              <option value="daily">{t('modal.recurrence.daily')}</option>
+              <option value="weekly">{t('modal.recurrence.weekly')}</option>
+              <option value="monthly">{t('modal.recurrence.monthly')}</option>
             </select>
-            <p className="text-[10px] text-muted-foreground ml-1">When closed, a duplicate task for the next cycle will be automatically created.</p>
           </div>
         </div>
 
         <div className="p-4 border-t border-border flex justify-between bg-muted/10">
           {isEditMode ? (
-            <Button variant="ghost" onClick={handleDelete} className="text-destructive hover:bg-destructive/10 hover:text-destructive">Delete</Button>
+            <Button variant="ghost" onClick={handleDelete} className="text-destructive hover:bg-destructive/10 hover:text-destructive">{t('modal.delete')}</Button>
           ) : <div />}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSave} className="font-semibold shadow-sm px-6">Save</Button>
+            <Button variant="outline" onClick={closeModal}>{t('modal.cancel')}</Button>
+            <Button onClick={handleSave} className="font-semibold shadow-sm px-6">{t('modal.save')}</Button>
           </div>
         </div>
       </div>
