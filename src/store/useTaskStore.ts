@@ -43,24 +43,6 @@ const generateNextDueDate = (current: string | null, recurrence: string) => {
   return format(nextDate, 'yyyy-MM-dd');
 };
 
-const handleRecurringTaskCreation = async (db: Database, task: Task) => {
-  if (task.recurrence !== 'none') {
-    const effectiveDueDate = task.due_date || task.created_at.split('T')[0];
-    const newDueDate = generateNextDueDate(effectiveDueDate, task.recurrence);
-    
-    const existing = await db.select<Task[]>('SELECT id FROM tasks WHERE title = $1 AND recurrence = $2 AND due_date = $3', [task.title, task.recurrence, newDueDate]);
-    if (existing && existing.length > 0) {
-      return; // Duplicate guard: task for the next cycle already exists
-    }
-
-    const newId = Date.now().toString() + Math.random().toString(36).substring(2);
-    const created_at = new Date().toISOString();
-    await db.execute(
-      'INSERT INTO tasks (id, title, description, is_completed, due_date, category, created_at, status, recurrence) VALUES ($1, $2, $3, 0, $4, $5, $6, $7, $8)',
-      [newId, task.title, task.description || null, newDueDate, task.category || null, created_at, 'todo', task.recurrence]
-    );
-  }
-};
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
@@ -93,17 +75,11 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       if (taskData.id) {
         const { id, title, description, due_date, category, status, recurrence } = taskData;
         const isCompleted = status === 'done' ? 1 : 0;
-        const originalTask = get().tasks.find(t => t.id === id);
         
         await db.execute(
           'UPDATE tasks SET title = $1, description = $2, due_date = $3, category = $4, status = $5, is_completed = $6, recurrence = $7 WHERE id = $8',
           [title, description || null, due_date || null, category || null, status, isCompleted, recurrence || 'none', id]
         );
-        
-        if (status === 'done' && originalTask && originalTask.status !== 'done') {
-           const updatedTask = { ...originalTask, title: title || originalTask.title, due_date: due_date || originalTask.due_date, recurrence: recurrence || originalTask.recurrence } as Task;
-           await handleRecurringTaskCreation(db, updatedTask);
-        }
       } else {
         const id = Date.now().toString() + Math.random().toString(36).substring(2);
         const { title, description, due_date, category, recurrence } = taskData;
@@ -126,13 +102,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     try {
       const db = await Database.load('sqlite:todone.db');
       const isCompleted = newStatus === 'done' ? 1 : 0;
-      const task = get().tasks.find(t => t.id === id);
       
       await db.execute('UPDATE tasks SET status = $1, is_completed = $2 WHERE id = $3', [newStatus, isCompleted, id]);
-      
-      if (newStatus === 'done' && task && task.status !== 'done') {
-        await handleRecurringTaskCreation(db, task);
-      }
       await get().loadTasks();
     } catch (e) {
       console.error("Failed to update status", e);
@@ -145,13 +116,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const db = await Database.load('sqlite:todone.db');
       const newCompleted = currentStatus === 0 ? 1 : 0;
       const newStatus = newCompleted === 1 ? 'done' : 'todo';
-      const task = get().tasks.find(t => t.id === id);
 
       await db.execute('UPDATE tasks SET is_completed = $1, status = $2 WHERE id = $3', [newCompleted, newStatus, id]);
-      
-      if (newStatus === 'done' && task && task.status !== 'done') {
-        await handleRecurringTaskCreation(db, task);
-      }
       await get().loadTasks();
     } catch (e) {
       console.error("Failed to toggle task", e);
