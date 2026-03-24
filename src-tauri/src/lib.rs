@@ -92,20 +92,28 @@ pub fn run() {
                                     let window_h = window_size.height as i32;
 
                                     // Get monitor height to decide open direction
-                                    let screen_h = window
-                                        .current_monitor()
-                                        .ok()
-                                        .flatten()
-                                        .map(|m| m.size().height as i32)
-                                        .unwrap_or(1080);
+                                    let monitors = window.available_monitors().unwrap_or_default();
+                                    let current_monitor = monitors.into_iter().find(|m| {
+                                        let pos = m.position();
+                                        let size = m.size();
+                                        tray_x >= pos.x as i32 && tray_x <= (pos.x as i32 + size.width as i32)
+                                    }).or_else(|| window.current_monitor().ok().flatten());
 
+                                    let (monitor_x, monitor_y, monitor_w, monitor_h) = match current_monitor {
+                                        Some(m) => {
+                                            let pos = m.position();
+                                            let size = m.size();
+                                            (pos.x as i32, pos.y as i32, size.width as i32, size.height as i32)
+                                        }
+                                        None => (0, 0, 1920, 1080), // Fallback
+                                    };
                                     // Center horizontally on the tray icon
                                     let mut x = tray_x + (tray_width / 2) - (window_w / 2);
                                     // Clamp so window never goes off the left/right edge
-                                    x = x.max(0);
+                                    x = x.clamp(monitor_x, monitor_x + monitor_w - window_w);
 
                                     // macOS: taskbar at top → open below; Windows: taskbar at bottom → open above
-                                    let y = if tray_bottom_y > screen_h / 2 {
+                                    let y = if tray_bottom_y > monitor_y + monitor_h / 2 {
                                         // Tray icon is in bottom half (Windows taskbar) → open above
                                         tray_y - window_h
                                     } else {
