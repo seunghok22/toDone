@@ -7,10 +7,10 @@ function KanbanColumn({ id, title, tasks }: { id: string, title: string, tasks: 
   return (
     <div 
       ref={setNodeRef} 
-      className={`flex-1 bg-muted/20 border ${isOver ? 'border-primary' : 'border-transparent'} rounded-xl p-4 flex flex-col gap-3 min-h-[400px] h-full overflow-hidden transition-colors`}
+      className={`flex-1 bg-muted/20 border ${isOver ? 'border-primary' : 'border-transparent'} rounded-xl p-4 flex flex-col gap-3 min-h-0 transition-colors`}
     >
       <h3 className="font-semibold text-sm text-foreground mb-1 shrink-0">{title} <span className="text-muted-foreground ml-1 font-normal">{tasks.length}</span></h3>
-      <div className="flex flex-col gap-2 overflow-y-auto h-full pr-1 no-scrollbar pb-10">
+      <div className="flex flex-col gap-2 flex-1 overflow-y-auto min-h-0 pr-1 no-scrollbar pb-8">
         {tasks.map(task => <KanbanCard key={task.id} task={task} />)}
       </div>
     </div>
