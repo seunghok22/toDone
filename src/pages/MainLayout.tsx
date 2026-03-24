@@ -5,9 +5,8 @@ import { Input } from "@/atoms/input";
 import { Checkbox } from "@/atoms/checkbox";
 import { useTaskStore } from "@/store/useTaskStore";
 import { KanbanBoard } from "@/organisms/KanbanBoard";
-import { MonthlyView } from "@/organisms/MonthlyView";
 import { WeeklyView } from "@/organisms/WeeklyView";
-import { CalendarStrip } from "@/molecules/CalendarStrip";
+import { GlobalCalendar } from "@/molecules/GlobalCalendar";
 
 export function MainLayout() {
   const { tasks, error, loadTasks, addTask, toggleTask, deleteTask, selectedDate } = useTaskStore();
@@ -36,13 +35,12 @@ export function MainLayout() {
         <Button size="sm" variant="ghost">Settings</Button>
       </header>
       
-      <CalendarStrip />
+      <GlobalCalendar />
       
       <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden px-6 pt-4 pb-6">
-        <TabsList className="mb-6 w-fit shrink-0">
+        <TabsList className="mb-4 w-fit shrink-0">
           <TabsTrigger value="daily">Daily</TabsTrigger>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
           <TabsTrigger value="all">All</TabsTrigger>
         </TabsList>
         
@@ -95,10 +93,7 @@ export function MainLayout() {
         <TabsContent value="weekly" className="w-full flex-1 outline-none overflow-hidden pb-4">
           <WeeklyView />
         </TabsContent>
-        <TabsContent value="monthly" className="w-full flex-1 outline-none overflow-hidden pb-4">
-          <MonthlyView />
-        </TabsContent>
-        <TabsContent value="all" className="w-full flex-1 outline-none overflow-hidden">
+        <TabsContent value="all" className="w-full flex-1 outline-none overflow-hidden flex flex-col">
           <KanbanBoard />
         </TabsContent>
       </Tabs>
