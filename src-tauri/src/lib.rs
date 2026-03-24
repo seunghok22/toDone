@@ -73,13 +73,33 @@ pub fn run() {
                                     let size = rect.size.to_physical::<f64>(sf);
                                     
                                     let tray_x = pos.x as i32;
+                                    let tray_y = pos.y as i32;
                                     let tray_width = size.width as i32;
-                                    let tray_bottom_y = pos.y as i32 + size.height as i32;
+                                    let tray_bottom_y = tray_y + size.height as i32;
                                     
                                     let window_size = window.outer_size().unwrap();
-                                    
-                                    let x = tray_x + (tray_width / 2) - (window_size.width as i32 / 2);
-                                    let y = tray_bottom_y;
+                                    let window_w = window_size.width as i32;
+                                    let window_h = window_size.height as i32;
+
+                                    // Get monitor height to decide open direction
+                                    let screen_h = window.current_monitor()
+                                        .ok().flatten()
+                                        .map(|m| m.size().height as i32)
+                                        .unwrap_or(1080);
+
+                                    // Center horizontally on the tray icon
+                                    let mut x = tray_x + (tray_width / 2) - (window_w / 2);
+                                    // Clamp so window never goes off the left/right edge
+                                    x = x.max(0);
+
+                                    // macOS: taskbar at top → open below; Windows: taskbar at bottom → open above
+                                    let y = if tray_bottom_y > screen_h / 2 {
+                                        // Tray icon is in bottom half (Windows taskbar) → open above
+                                        tray_y - window_h
+                                    } else {
+                                        // Tray icon is in top half (macOS menu bar) → open below
+                                        tray_bottom_y
+                                    };
 
                                     let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x, y }));
                                     
