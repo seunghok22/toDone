@@ -20,6 +20,7 @@ interface TaskStore {
   selectedDate: string;
   setSelectedDate: (date: string) => void;
   loadTasks: () => Promise<void>;
+  syncRecurringTasks: () => Promise<void>;
   
   isModalOpen: boolean;
   editingTask: Task | null;
@@ -154,10 +155,59 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       await get().loadTasks();
     } catch (e) {
       console.error("Failed to toggle task", e);
-      set({ error: "Toggle DB Error: " + String(e) });
+      set({ error: "Failed to toggle task" });
     }
   },
   
+  syncRecurringTasks: async () => {
+    try {
+      const db = await Database.load('sqlite:todone.db');
+      const tasks = get().tasks;
+      const recurringTasks = tasks.filter(t => t.recurrence !== 'none');
+      
+      const seriesMap = new Map<string, Task[]>();
+      recurringTasks.forEach(t => {
+        const key = `${t.title}-${t.recurrence}`;
+        if (!seriesMap.has(key)) seriesMap.set(key, []);
+        seriesMap.get(key)!.push(t);
+      });
+
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      let isSynced = false;
+
+      for (const [_, instances] of seriesMap.entries()) {
+        instances.sort((a, b) => {
+          const tA = a.due_date ? new Date(a.due_date).getTime() : new Date(a.created_at).getTime();
+          const tB = b.due_date ? new Date(b.due_date).getTime() : new Date(b.created_at).getTime();
+          return tB - tA; // descending
+        });
+        
+        const latestTask = instances[0];
+        let lastGeneratedDate = latestTask.due_date || latestTask.created_at.split('T')[0];
+
+        while (new Date(lastGeneratedDate) < new Date(todayStr)) {
+          lastGeneratedDate = generateNextDueDate(lastGeneratedDate, latestTask.recurrence);
+          
+          const existing = await db.select<Task[]>('SELECT id FROM tasks WHERE title = $1 AND recurrence = $2 AND due_date = $3', [latestTask.title, latestTask.recurrence, lastGeneratedDate]);
+          if (!existing || existing.length === 0) {
+            const newId = Date.now().toString() + Math.random().toString(36).substring(2);
+            await db.execute(
+              'INSERT INTO tasks (id, title, description, is_completed, due_date, category, created_at, status, recurrence) VALUES ($1, $2, $3, 0, $4, $5, $6, $7, $8)',
+              [newId, latestTask.title, latestTask.description || null, lastGeneratedDate, latestTask.category || null, new Date().toISOString(), 'todo', latestTask.recurrence]
+            );
+            isSynced = true;
+          }
+        }
+      }
+      
+      if (isSynced) {
+        await get().loadTasks();
+      }
+    } catch (e) {
+      console.error("Failed to sync recurring tasks", e);
+    }
+  },
+
   deleteTask: async (id) => {
     try {
       const db = await Database.load('sqlite:todone.db');

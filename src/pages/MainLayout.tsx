@@ -10,12 +10,16 @@ import { GlobalCalendar } from "@/molecules/GlobalCalendar";
 import { TaskDetailModal } from "@/organisms/TaskDetailModal";
 
 export function MainLayout() {
-  const { tasks, error, loadTasks, toggleTask, openCreateModal, openEditModal, selectedDate } = useTaskStore();
+  const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, openCreateModal, toggleTask, openEditModal } = useTaskStore();
   const isReady = true;
 
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    const init = async () => {
+      await loadTasks();
+      await syncRecurringTasks();
+    };
+    init();
+  }, [loadTasks, syncRecurringTasks]);
 
   // 3. Filter tasks for Daily tab
   const isDateMatch = (dateStr: string | null) => {
@@ -24,7 +28,7 @@ export function MainLayout() {
   };
   
   const dailyTasks = tasks.filter(t => 
-    t.category === 'daily' || isDateMatch(t.due_date) || (!t.due_date && t.recurrence === 'none' && isDateMatch(t.created_at))
+    isDateMatch(t.due_date) || (!t.due_date && t.recurrence === 'none' && isDateMatch(t.created_at))
   );
 
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
