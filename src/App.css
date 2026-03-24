@@ -66,5 +66,7 @@
     width: 100vw;
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
+    border-radius: 16px;
+    overflow: hidden;
   }
 }
