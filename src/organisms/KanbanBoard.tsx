@@ -35,9 +35,14 @@ function KanbanCard({ task }: { task: Task }) {
       {...listeners}
       {...attributes}
       onClick={() => openEditModal(task)}
-      className={`bg-card p-3 rounded-lg border shadow-sm cursor-grab active:cursor-grabbing flex items-center justify-between hover:border-foreground/20 transition-colors ${task.status === 'done' ? 'line-through text-muted-foreground bg-muted/50' : 'border-border text-foreground'}`}
+      className={`bg-card p-3 rounded-lg border shadow-sm cursor-grab active:cursor-grabbing flex items-center gap-2 justify-between hover:border-foreground/20 transition-colors ${task.status === 'done' ? 'line-through text-muted-foreground bg-muted/50' : 'border-border text-foreground'}`}
     >
-      <span className="text-sm font-medium leading-snug">{task.title}</span>
+      <span className="text-sm font-medium leading-snug truncate flex-1">{task.title}</span>
+      {task.recurrence !== 'none' && (
+        <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-bold uppercase tracking-wider shrink-0">
+          {task.recurrence}
+        </span>
+      )}
     </div>
   );
 }

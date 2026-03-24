@@ -1,5 +1,5 @@
 import { useTaskStore, Task } from "@/store/useTaskStore";
-import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
+import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
 import { Checkbox } from "@/atoms/checkbox";
 
 export function WeeklyView() {
@@ -35,9 +35,9 @@ export function WeeklyView() {
       <span className={`text-sm flex-1 truncate ${task.status === 'done' ? 'line-through text-muted-foreground opacity-70' : 'text-foreground font-medium'}`}>
         {task.title}
       </span>
-      {task.recurrence === 'weekly' && (
-        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-medium shrink-0">
-          Weekly
+      {task.due_date && (
+        <span className="text-[10px] bg-secondary text-secondary-foreground border border-border/50 px-2 py-1 rounded-md font-bold uppercase tracking-wider shrink-0 shadow-sm">
+          {format(parseISO(task.due_date), 'MM.dd')}
         </span>
       )}
     </div>

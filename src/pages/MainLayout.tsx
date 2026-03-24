@@ -54,6 +54,11 @@ export function MainLayout() {
                       {task.title}
                     </label>
                   </div>
+                  {task.recurrence !== 'none' && (
+                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-md font-bold uppercase tracking-wider shrink-0">
+                      {task.recurrence}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
