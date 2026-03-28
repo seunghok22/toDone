@@ -1,6 +1,6 @@
 # 📍 toDone 개발 로드맵
 
-> **최종 갱신일:** 2026-03-27  
+> **최종 갱신일:** 2026-03-28  
 > 본 문서는 GitHub Issues를 기반으로 구성된 전체 개발 로드맵입니다.
 
 ---
@@ -17,7 +17,7 @@
 | Phase 6 | 전역 캘린더 스트립 및 주간(Weekly) 뷰 구현 |
 | Phase 7 | 작업 상세 모달 및 스마트 반복(Recurring) 1차 로직 |
 | Phase 8 | UX 폴리싱 및 완전 자동화 스케줄링 — 반복 작업 탭 분리, 징검다리 스케줄러 |
-| Phase 9 | 최종 릴리즈 및 배포 — v1.0.0 공식 배포 (진행 중) |
+| Phase 9 | 최종 릴리즈 및 배포 — v1.0.0 공식 배포 |
 
 ---
 
@@ -36,20 +36,20 @@
 
 ---
 
-## 🔐 Phase 11: 사용자 식별 및 S3 보안 격리
+## 🔐 Phase 11: 사용자 식별 및 Cloudflare Worker 보안 격리
 
-> **핵심 목표:** 유저별 UUID를 발급하고, AWS Cognito 연동을 통해 개인 S3 경로에만 접근 가능하도록 보안을 구축합니다.
+> **핵심 목표:** 유저별 UUID와 동기화 PIN을 발급하고, 별도의 DB 없이 Cloudflare Worker와 R2 메타데이터를 활용하여 개인 데이터에만 접근 가능하도록 무과금 보안 환경을 구축합니다.
 
 **관련 이슈:** [#3 ICS 기반 단일 상태 관리 및 클라우드 동기화](https://github.com/seunghok22/toDone/issues/3)
 
-- **#3 — Task 2.2** 사용자 고유 식별자(UUID) 발급 및 S3 접근 격리
-  - 앱 최초 실행 시 UUID(v4) 생성 → 로컬 스토리지 영구 저장
-  - AWS Cognito를 통한 임시 S3 접근 자격 증명(Role) 발급
-  - S3 IAM 정책: `s3://[버킷]/users/${UUID}/*`경로에만 PutObject/GetObject 허용
+- **#3 — Task 2.2** 사용자 고유 식별자(UUID) 및 PIN 발급 / Worker 기반 접근 제어
+  - 앱 최초 실행 시 UUID(v4) 및 PIN 번호(4~8자리) 생성 → 로컬 스토리지 영구 저장
+  - Cloudflare Worker 생성 및 R2 버킷 바인딩 (API 프록시 역할)
+  - Worker 통제 로직: 프론트엔드가 보낸 `X-User-Pin` 헤더를 검증하고, R2 파일의 커스텀 메타데이터(PIN)와 일치할 때만 읽기/쓰기 허용
 
 ---
 
-## ☁️ Phase 12: 클라우드 동기화 엔진 — S3 기반 실시간 병합
+## ☁️ Phase 12: 클라우드 동기화 엔진 — R2 기반 실시간 병합
 
 > **핵심 목표:** 데스크톱(Tauri)과 모바일(PWA) 간 완벽한 상태 동기화를 구현하고, 동시 수정·오프라인 상황에서도 데이터 유실 없는 병합 엔진을 탑재합니다.
 
@@ -58,18 +58,18 @@
 - **#3 — Task 2.3.1** 데이터 규격 정비 및 Tombstone 로직 적용
   - 모든 일정에 고유 `UID` + `LAST-MODIFIED` 타임스탬프 필수 부여
   - 삭제 시 Soft Delete(`STATUS:CANCELLED`) 적용, UI에서만 숨김 처리
-- **#3 — Task 2.3.2** S3 충돌 감지 (Optimistic Locking)
-  - 다운로드 시 ETag 저장, 업로드 전 `If-Match` 헤더로 일치 여부 검증
+- **#3 — Task 2.3.2** R2 충돌 감지 (Optimistic Locking)
+  - Worker를 통해 다운로드 시 ETag 저장, 업로드 전 `If-Match` 헤더로 일치 여부 검증
 - **#3 — Task 2.3.3** 프론트엔드 Merge 엔진 개발
-  - ETag 불일치(충돌) 감지 시 S3 최신 파일 다운로드 → UID 기준 비교 → `LAST-MODIFIED` 최신 이벤트 우선 병합
+  - ETag 불일치(충돌) 감지 시 R2 최신 파일 재다운로드 → UID 기준 비교 → `LAST-MODIFIED` 최신 이벤트 우선 병합
 - **#3 — Task 2.3.4** 네트워크 상태 감지 및 큐 처리
-  - `navigator.onLine` 기반 오프라인 감지 → 로컬 큐 적재 → 온라인 복귀 시 자동 Merge & Sync
+  - `navigator.onLine` 기반 오프라인 감지 → 로컬 큐 적재 → 온라인 복귀 시 자동 Merge & Sync 트리거
 
 ---
 
-## 📱 Phase 13: PWA 기반 모바일 지원 및 배포
+## 📱 Phase 13: PWA 기반 모바일 지원 및 Pages 배포
 
-> **핵심 목표:** React 프론트엔드를 PWA로 확장하여 모바일 브라우저에서 네이티브 앱 수준의 경험을 제공하고, 자동 배포 파이프라인을 구축합니다.
+> **핵심 목표:** React 프론트엔드를 PWA로 확장하여 모바일 브라우저에서 네이티브 앱 수준의 경험을 제공하고, Cloudflare Pages를 통해 자동 배포 파이프라인을 구축합니다.
 
 **관련 이슈:** [#1 모바일 앱 개발 및 연동](https://github.com/seunghok22/toDone/issues/1), [#2 PWA 기반 모바일 웹 지원](https://github.com/seunghok22/toDone/issues/2)
 
@@ -79,9 +79,9 @@
 - **#2 — Task 1.2** 모바일 디바이스 대응 반응형 UI 개선
   - 주요 컴포넌트에 터치 스와이프 이벤트 추가
   - Breakpoint 기반 하단 내비게이션 바 / 햄버거 메뉴 레이아웃 분리
-- **#2 — Task 1.3** 웹(PWA) 프로덕션 배포 파이프라인 구축
-  - GitHub Actions 기반 자동 빌드 → AWS S3 동기화 + CloudFront 캐시 무효화
-  - (대안 검토) Vercel / Cloudflare Pages 연동
+- **#2 — Task 1.3** 웹(PWA) 프로덕션 자동 배포 파이프라인 구축 (Cloudflare Pages)
+  - Cloudflare Pages 프로젝트 생성 및 GitHub 저장소(`main` 브랜치) 연동
+  - 빌드(`npm run build`) 및 정적 파일(`dist`) 배포 자동화 적용
 
 ---
 
@@ -94,7 +94,7 @@
 - **#3 — Task 2.4** 외부 캘린더 ICS 파일 Import 기능 구현
   - `SettingsModal.tsx`에 '.ics 파일 업로드' UI 추가
   - 외부 `.ics` 파싱 → `useTaskStore` 데이터 병합 (UID 대조로 중복 방지)
-  - 병합 완료 후 로컬 캐시 + S3 자동 최신화
+  - 병합 완료 후 로컬 캐시 + Cloudflare R2 자동 최신화
 
 ---
 
@@ -132,7 +132,7 @@ gantt
 
     section 🔥 최우선 (ICS 마이그레이션)
     Phase 10 SQLite→ICS     :active, p10, 2026-03-28, 21d
-    Phase 11 UUID/S3 보안    :p11, after p10, 14d
+    Phase 11 UUID/R2 보안    :p11, after p10, 14d
     Phase 12 동기화 엔진     :p12, after p11, 28d
 
     section 📱 모바일 확장
