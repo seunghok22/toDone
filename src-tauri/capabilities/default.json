@@ -6,9 +6,11 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "sql:default",
-    "sql:allow-execute",
-    "sql:allow-select",
-    "sql:allow-load"
+    "fs:default",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-appdata-read",
+    "fs:allow-appdata-write",
+    "fs:allow-mkdir"
   ]
 }

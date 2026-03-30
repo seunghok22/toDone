@@ -7,51 +7,12 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager,
 };
-use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![
-        Migration {
-            version: 1,
-            description: "create_tasks_table",
-            sql: "CREATE TABLE IF NOT EXISTS tasks (
-                id TEXT PRIMARY KEY,
-                title TEXT NOT NULL,
-                is_completed INTEGER NOT NULL DEFAULT 0,
-                due_date TEXT,
-                category TEXT,
-                created_at TEXT NOT NULL
-            );",
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 2,
-            description: "add_status_column",
-            sql: "ALTER TABLE tasks ADD COLUMN status TEXT NOT NULL DEFAULT 'todo';",
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 3,
-            description: "add_recurrence_column",
-            sql: "ALTER TABLE tasks ADD COLUMN recurrence TEXT NOT NULL DEFAULT 'none';",
-            kind: MigrationKind::Up,
-        },
-        Migration {
-            version: 4,
-            description: "add_description_column",
-            sql: "ALTER TABLE tasks ADD COLUMN description TEXT;",
-            kind: MigrationKind::Up,
-        },
-    ];
-
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(
-            tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:todone.db", migrations)
-                .build(),
-        )
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
