@@ -1,0 +1,12 @@
+{
+  "name": "@todone/utils",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@todone/types": "workspace:*",
+    "clsx": "^2.1.1",
+    "ical.js": "^2.2.1",
+    "tailwind-merge": "^3.5.0"
+  }
+}
