@@ -5,7 +5,6 @@ import { useTaskStore } from '@todone/store';
 import { Button } from '../atoms/button';
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
-import i18n from "@/i18n";
 
 export function SettingsModal() {
   const {
@@ -13,7 +12,7 @@ export function SettingsModal() {
     allTabPeriod, setAllTabPeriod,
     pendingUpdate,
   } = useTaskStore();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isInstalling, setIsInstalling] = useState(false);
   const [appVersion, setAppVersion] = useState('');
 

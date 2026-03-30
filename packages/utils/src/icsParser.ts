@@ -93,7 +93,7 @@ export function generateIcsFromTasks(tasks: Task[]): string {
           month: parseInt(dueData[1]),
           day: parseInt(dueData[2]),
           isDate: true
-        }));
+        }, undefined as any)); // <-- FIx strict type error
       }
     }
 
