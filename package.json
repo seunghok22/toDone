@@ -6,8 +6,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "dev:desktop": "pnpm --filter @todone/desktop tauri dev",
-    "build:desktop": "pnpm --filter @todone/desktop tauri build",
+    "dev:desktop": "pnpm --filter todone-desktop tauri dev",
+    "build:desktop": "pnpm --filter todone-desktop tauri build",
     "dev:mobile": "pnpm --filter mobile dev",
     "build:mobile": "pnpm --filter mobile build",
     "start:mobile": "pnpm --filter mobile start"

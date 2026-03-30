@@ -10,6 +10,7 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@todone/ui", "@todone/store", "@todone/utils", "@todone/types"],
+  allowedDevOrigins: ['192.168.50.16'],
 };
 
 export default withPWA(nextConfig);

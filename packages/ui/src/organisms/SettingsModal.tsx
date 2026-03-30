@@ -7,12 +7,21 @@ import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { isTauri } from "@todone/utils";
 
-export function SettingsModal() {
+interface SettingsModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
+  const store = useTaskStore();
+  
+  const isSettingsModalOpen = open !== undefined ? open : store.isSettingsModalOpen;
+  const setSettingsModalOpen = onOpenChange !== undefined ? onOpenChange : store.setSettingsModalOpen;
+  
   const {
-    isSettingsModalOpen, setSettingsModalOpen,
     allTabPeriod, setAllTabPeriod,
     pendingUpdate,
-  } = useTaskStore();
+  } = store;
   const { t, i18n } = useTranslation();
   const [isInstalling, setIsInstalling] = useState(false);
   const [appVersion, setAppVersion] = useState('');

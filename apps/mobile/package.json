@@ -14,9 +14,11 @@
     "@todone/types": "workspace:^",
     "@todone/ui": "workspace:^",
     "@todone/utils": "workspace:^",
+    "i18next": "^25.10.5",
     "next": "16.2.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-i18next": "^16.6.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

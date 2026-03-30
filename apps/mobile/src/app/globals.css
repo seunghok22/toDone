@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
+@source "../../../packages/ui/src";
 @source "../../../../packages/ui/src";
-
+@source "../../packages/ui/src";
+@source "../../../../../packages/ui/src";
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
