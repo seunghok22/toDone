@@ -6,9 +6,9 @@
 
 ## 1. 시스템 아키텍처 (System Architecture)
 
-### 1.1 전체 구조 개요
+### 1.1 전체 구조 개요 (Turborepo Monorepo)
 
-toDone은 **Tauri 2 기반의 데스크톱 트레이 앱**으로, macOS 메뉴바 / Windows 트레이에서 클릭 한 번으로 열리는 경량 할 일 관리자입니다.
+toDone은 기존 **Tauri 2 기반의 데스크톱 트레이 앱**에 더해 **Next.js 기반 모바일 PWA**를 지원하기 위해 Monorepo 아키텍처로 진화했습니다. 공통 비즈니스 로직과 UI 컴포넌트를 `packages/*`에 분리하고, 두 개의 독립적인 클라이언트(Desktop, Mobile)가 이를 참조하는 형태입니다.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -139,50 +139,25 @@ erDiagram
 
 ```
 toDone/
-├── src/                          # 프론트엔드 소스 (React + TypeScript)
-│   ├── main.tsx                  # React 앱 엔트리포인트 (StrictMode 렌더링)
-│   ├── App.tsx                   # 루트 컴포넌트 (MainLayout 렌더링만 담당)
-│   ├── App.css                   # 글로벌 CSS: Tailwind 설정, 다크 테마 변수, 투명 배경 스타일
-│   ├── i18n.ts                   # i18next 초기화: en/ko 번역 리소스 인라인 정의 및 언어 감지
-│   │
-│   ├── store/
-│   │   └── useTaskStore.ts       # ⭐ Zustand 글로벌 스토어: 모든 상태와 CRUD 로직의 중심
-│   │
-│   ├── hooks/
-│   │   └── useAutoUpdater.ts     # 자동 업데이트 훅: 24시간 주기 체크, 버전별 1회 팝업
-│   │
-│   ├── pages/
-│   │   └── MainLayout.tsx        # ⭐ 메인 페이지: 탭 구조 (Daily/Weekly/Recurring/All) + 캘린더
-│   │
-│   ├── organisms/                # 복합 UI 컴포넌트 (비즈니스 로직 포함)
-│   │   ├── KanbanBoard.tsx       # All 탭: 3열 칸반 보드 (Todo/In-Progress/Done) + DnD
-│   │   ├── WeeklyView.tsx        # Weekly 탭: 해당 주의 미완료/완료 작업 분류 표시
-│   │   ├── RecurringView.tsx     # Recurring 탭: 반복 작업 시리즈별 현재 주기 완료 현황
-│   │   ├── TaskDetailModal.tsx   # 할 일 생성/수정 모달: 제목, 설명, 마감일, 상태, 반복 편집
-│   │   ├── SettingsModal.tsx     # 설정 모달: 언어, All탭 기간, 업데이트, 앱 종료
-│   │   └── UpdateModal.tsx       # 업데이트 알림 모달: 새 버전 다운로드 & 재시작
-│   │
-│   ├── molecules/                # 조합 UI 컴포넌트 (여러 Atom 조합)
-│   │   └── GlobalCalendar.tsx    # 월간 달력: 날짜 선택, 일자별 작업 도트 인디케이터
-│   │
-│   ├── atoms/                    # 기본 UI 프리미티브 (shadcn/ui 기반)
-│   │   ├── button.tsx            # 버튼 (variant: default/destructive/outline/ghost 등)
-│   │   ├── checkbox.tsx          # 체크박스 (Base UI Checkbox 래퍼)
-│   │   ├── input.tsx             # 텍스트 입력 필드
-│   │   └── tabs.tsx              # 탭 (Base UI Tabs 래퍼)
-│   │
-│   ├── lib/
-│   │   └── utils.ts              # cn() 유틸리티 (clsx + tailwind-merge)
-│   │
-│   └── assets/                   # 정적 에셋 (아이콘 등)
+├── apps/
+│   ├── desktop/                  # 기존 React + Vite + Tauri 데스크톱 앱
+│   │   ├── src-tauri/            # Tauri 백엔드 (Rust)
+│   │   ├── src/                  # 프론트엔드 통합 앱 로직 및 데스크톱 전용 컴포넌트
+│   │   └── package.json          # @todone/desktop
+│   └── mobile/                   # 새로 구축된 Next.js + next-pwa 모바일 앱
+│       ├── src/app/              # Next.js App Router (PWA 레이아웃)
+│       ├── next.config.mjs       # Next.js + Serwist/PWA 설정
+│       └── package.json          # mobile
 │
-├── src-tauri/                    # Tauri 백엔드 (Rust)
-│   ├── src/
-│   │   ├── main.rs               # Rust 엔트리포인트 (lib::run() 호출)
-│   │   └── lib.rs                # ⭐ Tauri 앱 설정: 트레이 아이콘, SQLite 마이그레이션, Vibrancy
-│   ├── tauri.conf.json           # Tauri 설정: 윈도우 크기(800x750), 투명, 업데이터 설정
-│   ├── Cargo.toml                # Rust 의존성 (tauri, plugins)
-│   └── capabilities/            # Tauri v2 보안 권한 설정
+├── packages/                     # 🚀 공통 패키지 (모든 앱에서 공유 및 재사용)
+│   ├── config/                   # ESLint, TypeScript 등 공통 설정
+│   ├── store/                    # Zustand 상태 관리 및 로컬 저장소 연동 (@todone/store)
+│   ├── types/                    # 도메인 모델 타이핑 (@todone/types)
+│   ├── ui/                       # 디자인 시스템 및 UI 컴포넌트 (@todone/ui)
+│   │   ├── atoms/                # 버튼, 인풋 등 가장 작은 단위의 프리미티브 UI
+│   │   ├── molecules/            # 캘린더 등 2개 이상의 원자가 결합된 컴포넌트
+│   │   └── organisms/            # 칸반 보드, 설정 모달 등 복합적인 상태를 가진 모듈
+│   └── utils/                    # 파서(icsParser) 및 유틸리티 함수 (@todone/utils)
 │
 ├── docs/                         # 프로젝트 문서
 │   ├── 01_requirements.md
@@ -191,11 +166,9 @@ toDone/
 │   ├── 04_policy.md
 │   └── 05_architecture.md        # ← 현재 문서
 │
-├── index.html                    # Vite 엔트리 HTML
-├── package.json                  # npm 의존성 및 스크립트
-├── vite.config.ts                # Vite 설정: React, Tailwind, @ alias, Tauri 호환
-├── tsconfig.json                 # TypeScript 설정
-└── components.json               # shadcn/ui CLI 설정
+├── package.json                  # Turborepo 루트 스크립트 및 의존성
+├── pnpm-workspace.yaml           # 모노레포 워크스페이스 범위 설정
+└── turbo.json                    # 빌드 및 캐시 파이프라인 (turbo run build)
 ```
 
 ---

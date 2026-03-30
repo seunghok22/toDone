@@ -30,14 +30,18 @@ jobs:
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin, x86_64-apple-darwin' || '' }}
 
+      - name: install pnpm
+        run: npm install -g pnpm@9.0.0
+
       - name: install frontend dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: "apps/desktop"
           tagName: v__VERSION__
           releaseName: "toDone v__VERSION__"
           releaseBody: "See the assets to download this version and install."

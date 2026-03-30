@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Monorepo / Next.js
+.turbo
+.next
+out/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

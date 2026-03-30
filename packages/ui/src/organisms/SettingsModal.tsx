@@ -5,6 +5,7 @@ import { useTaskStore } from '@todone/store';
 import { Button } from '../atoms/button';
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
+import { isTauri } from "@todone/utils";
 
 export function SettingsModal() {
   const {
@@ -17,10 +18,14 @@ export function SettingsModal() {
   const [appVersion, setAppVersion] = useState('');
 
   useEffect(() => {
-    getVersion().then(setAppVersion).catch(console.error);
+    if (isTauri()) {
+      getVersion().then(setAppVersion).catch(console.error);
+    } else {
+      setAppVersion('Web/PWA'); // Mock desktop version for web
+    }
   }, []);
 
-  const handleQuit = async () => { await invoke('quit_app'); };
+  const handleQuit = async () => { if (isTauri()) { await invoke('quit_app'); } };
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -92,41 +97,45 @@ export function SettingsModal() {
             </select>
           </div>
 
-          {/* Version & Update */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-bold text-muted-foreground tracking-wider">{t('settings.version')}</label>
-            <Button
-              variant="outline"
-              disabled={!pendingUpdate || isInstalling}
-              onClick={handleInstallUpdate}
-              className={`w-full justify-between items-center h-10 font-medium rounded-lg transition-colors ${pendingUpdate ? 'border-primary/50 text-primary hover:bg-primary/10' : 'text-muted-foreground opacity-60 cursor-default'}`}
-            >
-              <span className="text-xs text-muted-foreground font-mono">
-                v{appVersion || '...'}
-              </span>
-              <span className="text-sm">
-                {isInstalling
-                  ? t('update.installing')
-                  : pendingUpdate
-                    ? t('settings.update.available', { version: pendingUpdate.version })
-                    : t('settings.update.latest')}
-              </span>
-            </Button>
-          </div>
+          {/* Version & Update (Only available in desktop) */}
+          {isTauri() && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-muted-foreground tracking-wider">{t('settings.version')}</label>
+              <Button
+                variant="outline"
+                disabled={!pendingUpdate || isInstalling}
+                onClick={handleInstallUpdate}
+                className={`w-full justify-between items-center h-10 font-medium rounded-lg transition-colors ${pendingUpdate ? 'border-primary/50 text-primary hover:bg-primary/10' : 'text-muted-foreground opacity-60 cursor-default'}`}
+              >
+                <span className="text-xs text-muted-foreground font-mono">
+                  v{appVersion || '...'}
+                </span>
+                <span className="text-sm">
+                  {isInstalling
+                    ? t('update.installing')
+                    : pendingUpdate
+                      ? t('settings.update.available', { version: pendingUpdate.version })
+                      : t('settings.update.latest')}
+                </span>
+              </Button>
+            </div>
+          )}
 
-          {/* App / Quit */}
-          <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
-            <label className="text-sm font-bold text-muted-foreground tracking-wider">{t('settings.app.label')}</label>
-            <p className="text-xs text-muted-foreground mb-1">{t('settings.app.desc')}</p>
-            <Button
-              variant="ghost"
-              onClick={handleQuit}
-              className="w-full justify-start gap-2.5 text-destructive hover:bg-destructive/10 hover:text-destructive border border-destructive/20 rounded-lg h-10 font-medium transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-              {t('settings.quit')}
-            </Button>
-          </div>
+          {/* App / Quit (Only available in desktop) */}
+          {isTauri() && (
+            <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
+              <label className="text-sm font-bold text-muted-foreground tracking-wider">{t('settings.app.label')}</label>
+              <p className="text-xs text-muted-foreground mb-1">{t('settings.app.desc')}</p>
+              <Button
+                variant="ghost"
+                onClick={handleQuit}
+                className="w-full justify-start gap-2.5 text-destructive hover:bg-destructive/10 hover:text-destructive border border-destructive/20 rounded-lg h-10 font-medium transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                {t('settings.quit')}
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-border flex justify-end bg-muted/10">

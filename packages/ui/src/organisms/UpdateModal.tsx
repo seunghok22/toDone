@@ -3,13 +3,14 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { useTaskStore } from '@todone/store';
 import { Button } from '../atoms/button';
 import { useTranslation } from 'react-i18next';
+import { isTauri } from '@todone/utils';
 
 export function UpdateModal() {
   const { isUpdateModalOpen, setUpdateModalOpen, pendingUpdate } = useTaskStore();
   const { t } = useTranslation();
   const [isInstalling, setIsInstalling] = useState(false);
 
-  if (!isUpdateModalOpen || !pendingUpdate) return null;
+  if (!isTauri() || !isUpdateModalOpen || !pendingUpdate) return null;
 
   const handleInstall = async () => {
     setIsInstalling(true);
