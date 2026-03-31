@@ -57,6 +57,21 @@ const resources = {
       'update.install': 'Install & Restart',
       'update.installing': 'Installing...',
 
+      // Cloud Sync
+      'settings.sync.label': 'Cloud Sync',
+      'settings.sync.desc': 'Sync tasks across devices using your unique UUID and PIN.',
+      'settings.sync.button': 'Sync Now',
+      'settings.sync.syncing': 'Syncing...',
+      'settings.sync.info': 'Credentials Info',
+
+      // ICS Import
+      'settings.import.label': 'Import Tasks (.ics)',
+      'settings.import.desc': 'Merge tasks from an external calendar file. Existing tasks will be updated if the imported ones are newer.',
+      'settings.import.button': 'Click or Drag & Drop to Import',
+      'settings.import.parsing': 'Parsing file...',
+      'settings.import.success': 'Successfully imported {{count}} tasks!',
+      'settings.import.error': 'Failed to import. Invalid .ics file.',
+
       // Task Detail Modal
       'modal.title.create': 'New Task',
       'modal.title.edit': 'Edit Task',
@@ -127,10 +142,25 @@ const resources = {
       // Update Modal
       'update.title': '업데이트',
       'update.available': 'v{{version}}을 설치할 준비가 됐어요.',
-      'update.description': 'toDone 새 버전이 출시됐어요. 지금 설치하면 최신 개선 사항과 수정 사항을 바로 사용할 수 있어요.',
+      'update.description': 'toDone 새 버전이 출시됐어요. 지금 설치하면 최신 개선 사항과 수정 사항을 바로 사용할 수 정할 수 있어요.',
       'update.later': '나중에',
       'update.install': '설치 및 재시작',
       'update.installing': '설치 중...',
+
+      // Cloud Sync
+      'settings.sync.label': 'Cloud Sync',
+      'settings.sync.desc': '발급된 UUID와 PIN 코드를 이용해 기기 간 데이터를 동기화합니다.',
+      'settings.sync.button': '지금 동기화',
+      'settings.sync.syncing': '동기화 중...',
+      'settings.sync.info': '계정 정보',
+
+      // ICS Import
+      'settings.import.label': '할 일 가져오기 (.ics)',
+      'settings.import.desc': '외부 캘린더 파일에서 할 일을 가져와 병합합니다. 이미 존재하는 할 일은 더 최신 파일인 경우 업데이트됩니다.',
+      'settings.import.button': '클릭하거나 파일을 드래그 영역으로 놓기',
+      'settings.import.parsing': '파일 분석 중...',
+      'settings.import.success': '성공적으로 {{count}}개의 할 일을 가져왔습니다!',
+      'settings.import.error': '가져오기 실패. 올바른 .ics 파일이 아닙니다.',
 
       // Task Detail Modal
       'modal.title.create': '새 할 일',
