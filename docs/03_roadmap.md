@@ -49,7 +49,7 @@
 
 ---
 
-## ☁️ Phase 12: 클라우드 동기화 엔진 — R2 기반 실시간 병합
+## ✅ Phase 12: 클라우드 동기화 엔진 — R2 기반 실시간 병합 (Completed)
 
 > **핵심 목표:** 데스크톱(Tauri)과 모바일(PWA) 간 완벽한 상태 동기화를 구현하고, 동시 수정·오프라인 상황에서도 데이터 유실 없는 병합 엔진을 탑재합니다.
 
@@ -67,7 +67,7 @@
 
 ---
 
-## 📱 Phase 13: PWA 기반 모바일 지원 및 Pages 배포
+## ✅ Phase 13: PWA 기반 모바일 지원 및 Pages 배포 (Completed)
 
 > **핵심 목표:** React 프론트엔드를 PWA로 확장하여 모바일 브라우저에서 네이티브 앱 수준의 경험을 제공하고, Cloudflare Pages를 통해 자동 배포 파이프라인을 구축합니다.
 
@@ -85,7 +85,7 @@
 
 ---
 
-## 📥 Phase 14: 외부 캘린더 Import
+## ✅ Phase 14: 외부 캘린더 Import (Completed)
 
 > **핵심 목표:** 구글 캘린더, 애플 캘린더 등 외부 서비스에서 내보낸 `.ics` 파일을 앱으로 가져와 기존 데이터와 안전하게 병합합니다.
 
@@ -129,18 +129,12 @@ gantt
 
     section ✅ 완료
     Phase 1~9 (v1.0)       :done, p1, 2026-01-01, 2026-03-25
-
-    section 🔥 최우선 (ICS 마이그레이션)
-    Phase 10 SQLite→ICS     :active, p10, 2026-03-28, 21d
-    Phase 11 UUID/R2 보안    :p11, after p10, 14d
-    Phase 12 동기화 엔진     :p12, after p11, 28d
-
-    section 📱 모바일 확장
-    Phase 13 PWA/배포        :p13, after p10, 21d
-
-    section 📥 외부 연동
-    Phase 14 ICS Import     :p14, after p12, 14d
+    Phase 10 SQLite→ICS     :done, p10, 2026-03-28, 21d
+    Phase 11 UUID/R2 보안    :done, p11, after p10, 14d
+    Phase 12 동기화 엔진     :done, p12, after p11, 28d
+    Phase 13 PWA/배포        :done, p13, after p10, 21d
+    Phase 14 ICS Import     :done, p14, after p12, 14d
 
     section ✨ UX 고도화
-    Phase 15 UI/UX 개선      :p15, after p10, 28d
+    Phase 15 UI/UX 개선      :active, p15, after p10, 28d
 ```
