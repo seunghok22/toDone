@@ -3,7 +3,7 @@ import { BaseDirectory, readTextFile, writeTextFile, exists, mkdir } from '@taur
 import { addDays, addWeeks, addMonths, parseISO, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import { debounce } from 'lodash-es';
 import type { Update } from '@tauri-apps/plugin-updater';
-import { parseIcsToTasks, generateIcsFromTasks } from '@todone/utils';
+import { parseIcsToTasks, generateIcsFromTasks, mergeTasks, initSync, downloadFromR2, uploadToR2, generateUUID, generatePIN } from '@todone/utils';
 import type { Task } from '@todone/types';
 
 interface TaskStore {
@@ -33,6 +33,16 @@ interface TaskStore {
   // 외부 ICS Import
   importExternalIcs: (externalTasks: Task[]) => Promise<void>;
 
+  // Cloud Sync
+  syncUuid: string;
+  syncPin: string;
+  currentEtag: string;
+  isSyncing: boolean;
+  lastSyncedAt: string | null;
+  syncError: string | null;
+  initSyncCredentials: () => Promise<void>;
+  syncWithCloud: () => Promise<void>;
+
   // Auto updater
   pendingUpdate: Update | null;
   setPendingUpdate: (update: Update | null) => void;
@@ -41,7 +51,12 @@ interface TaskStore {
 }
 
 const ICS_FILENAME = 'todone.ics';
+const SYNC_UUID_KEY = 'todone-sync-uuid';
+const SYNC_PIN_KEY = 'todone-sync-pin';
+const SYNC_ETAG_KEY = 'todone-sync-etag';
+
 const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+const isBrowser = () => typeof window !== 'undefined';
 
 const nowIso = () => new Date().toISOString();
 
@@ -130,11 +145,19 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   
   isSettingsModalOpen: false,
   setSettingsModalOpen: (isOpen) => set({ isSettingsModalOpen: isOpen }),
-  allTabPeriod: (typeof window !== 'undefined' ? localStorage.getItem('allTabPeriod') : null) as any || 'all',
+  allTabPeriod: (isBrowser() ? localStorage.getItem('allTabPeriod') : null) as any || 'all',
   setAllTabPeriod: (period) => {
     localStorage.setItem('allTabPeriod', period);
     set({ allTabPeriod: period });
   },
+
+  // Cloud Sync state
+  syncUuid: isBrowser() ? (localStorage.getItem(SYNC_UUID_KEY) || '') : '',
+  syncPin: isBrowser() ? (localStorage.getItem(SYNC_PIN_KEY) || '') : '',
+  currentEtag: isBrowser() ? (localStorage.getItem(SYNC_ETAG_KEY) || '"empty"') : '"empty"',
+  isSyncing: false,
+  lastSyncedAt: null,
+  syncError: null,
 
   // Auto updater
   pendingUpdate: null,
@@ -153,7 +176,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const icsString = await loadIcsData();
       const loadedTasks = parseIcsToTasks(icsString);
       loadedTasks.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      // Tombstone 포함 전체 저장 (cancelled 포함), UI에서 filterActiveTasks로 필터
       set({ tasks: loadedTasks, error: null });
     } catch (e) {
       console.error("Failed to load tasks", e);
@@ -306,14 +328,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       for (const ext of externalTasks) {
         const existingIdx = currentTasks.findIndex(t => t.id === ext.id);
         if (existingIdx !== -1) {
-          // UID 중복: last_modified 비교하여 최신만 반영
           const existing = currentTasks[existingIdx];
           if (new Date(ext.last_modified || ext.created_at).getTime() > new Date(existing.last_modified || existing.created_at).getTime()) {
             currentTasks[existingIdx] = { ...ext, last_modified: timestamp };
             imported++;
           }
         } else {
-          // 신규 태스크
           currentTasks.unshift({ ...ext, last_modified: timestamp });
           imported++;
         }
@@ -324,14 +344,100 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         set({ tasks: currentTasks });
         triggerSave(currentTasks);
       }
-
-      return;
     } catch (e) {
       console.error("Failed to import external ICS", e);
       set({ error: "Import Error: " + String(e) });
     }
   },
+
+  /** UUID/PIN 최초 생성 및 Worker 등록 */
+  initSyncCredentials: async () => {
+    let uuid = get().syncUuid;
+    let pin = get().syncPin;
+
+    if (!uuid) {
+      uuid = generateUUID();
+      localStorage.setItem(SYNC_UUID_KEY, uuid);
+    }
+    if (!pin) {
+      pin = generatePIN();
+      localStorage.setItem(SYNC_PIN_KEY, pin);
+    }
+
+    set({ syncUuid: uuid, syncPin: pin });
+
+    try {
+      const result = await initSync(uuid, pin);
+      if (!result.success) {
+        set({ syncError: result.message || 'Sync init failed' });
+      } else {
+        set({ syncError: null });
+      }
+    } catch (e) {
+      set({ syncError: 'Network error during sync init' });
+    }
+  },
+
+  /** 클라우드 동기화: download → merge → upload */
+  syncWithCloud: async () => {
+    const { syncUuid, syncPin, currentEtag, tasks, isSyncing } = get();
+    if (!syncUuid || !syncPin || isSyncing) return;
+
+    set({ isSyncing: true, syncError: null });
+
+    try {
+      // 1. R2에서 최신 데이터 다운로드
+      const downloadResult = await downloadFromR2(syncUuid, syncPin);
+      if (!downloadResult) {
+        set({ isSyncing: false, syncError: 'Download failed' });
+        return;
+      }
+
+      const remoteTasks = parseIcsToTasks(downloadResult.icsContent);
+      
+      // 2. 로컬과 리모트 Merge
+      const mergedTasks = mergeTasks(tasks, remoteTasks);
+      
+      // 3. Merge 결과를 로컬에 반영
+      mergedTasks.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      set({ tasks: mergedTasks });
+      
+      // 4. 로컬에 저장
+      const mergedIcs = generateIcsFromTasks(mergedTasks);
+      await saveIcsData(mergedIcs);
+
+      // 5. R2에 업로드 (ETag 검증)
+      const uploadResult = await uploadToR2(syncUuid, syncPin, mergedIcs, downloadResult.etag);
+      
+      if (uploadResult.conflict) {
+        // ETag 충돌 — 재다운로드하여 재병합
+        const freshDownload = await downloadFromR2(syncUuid, syncPin);
+        if (freshDownload) {
+          const freshRemote = parseIcsToTasks(freshDownload.icsContent);
+          const reMerged = mergeTasks(mergedTasks, freshRemote);
+          reMerged.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          set({ tasks: reMerged });
+          
+          const reMergedIcs = generateIcsFromTasks(reMerged);
+          await saveIcsData(reMergedIcs);
+          
+          const retryUpload = await uploadToR2(syncUuid, syncPin, reMergedIcs, freshDownload.etag);
+          if (retryUpload.success && retryUpload.newEtag) {
+            localStorage.setItem(SYNC_ETAG_KEY, retryUpload.newEtag);
+            set({ currentEtag: retryUpload.newEtag });
+          }
+        }
+      } else if (uploadResult.success && uploadResult.newEtag) {
+        localStorage.setItem(SYNC_ETAG_KEY, uploadResult.newEtag);
+        set({ currentEtag: uploadResult.newEtag });
+      }
+
+      set({ isSyncing: false, lastSyncedAt: nowIso(), syncError: null });
+    } catch (e) {
+      console.error("Cloud sync failed:", e);
+      set({ isSyncing: false, syncError: 'Sync failed: ' + String(e) });
+    }
+  },
 }));
 
-/** UI에서 사용하는 활성 태스크만 반환하는 유틸리티 (cancelled 제외) */
 export { filterActiveTasks };

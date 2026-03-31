@@ -1,0 +1,10 @@
+name = "todone-sync-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[[r2_buckets]]
+binding = "TODONE_BUCKET"
+bucket_name = "todone-data"
+
+[vars]
+CORS_ORIGIN = "*"
