@@ -48,6 +48,7 @@ export function MainLayout() {
 
   const dailyTasks = useMemo(() => {
     return tasks.filter(t => {
+      if (t.status === 'cancelled') return false;
       const effectiveDateStr = t.due_date || ((t.recurrence === 'none') ? t.created_at.split('T')[0] : null);
       if (!effectiveDateStr) return false;
 

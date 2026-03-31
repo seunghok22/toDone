@@ -26,7 +26,9 @@ export function parseIcsToTasks(icsString: string): Task[] {
       
       let status: Task['status'] = 'todo';
       let is_completed = 0;
-      if (statusVal === 'COMPLETED' || completed) {
+      if (statusVal === 'CANCELLED') {
+        status = 'cancelled';
+      } else if (statusVal === 'COMPLETED' || completed) {
         status = 'done';
         is_completed = 1;
       } else if (statusVal === 'IN-PROCESS') {
@@ -42,6 +44,10 @@ export function parseIcsToTasks(icsString: string): Task[] {
       const rootCreated = vtodo.getFirstPropertyValue('dtstamp');
       let created_at = rootCreated ? rootCreated.toString() : new Date().toISOString();
 
+      // LAST-MODIFIED 파싱
+      const rootLastModified = vtodo.getFirstPropertyValue('last-modified');
+      let last_modified = rootLastModified ? rootLastModified.toString() : created_at;
+
       return {
         id: vtodo.getFirstPropertyValue('uid') || Date.now().toString(),
         title: vtodo.getFirstPropertyValue('summary') || 'Untitled',
@@ -50,6 +56,7 @@ export function parseIcsToTasks(icsString: string): Task[] {
         due_date,
         category: vtodo.getFirstPropertyValue('categories') || 'daily',
         created_at,
+        last_modified,
         status,
         recurrence
       };
@@ -75,7 +82,10 @@ export function generateIcsFromTasks(tasks: Task[]): string {
       vtodo.updatePropertyWithValue('description', task.description);
     }
     
-    if (task.status === 'done' || task.is_completed === 1) {
+    // STATUS 매핑 (cancelled = Tombstone)
+    if (task.status === 'cancelled') {
+      vtodo.updatePropertyWithValue('status', 'CANCELLED');
+    } else if (task.status === 'done' || task.is_completed === 1) {
       vtodo.updatePropertyWithValue('status', 'COMPLETED');
     } else if (task.status === 'in-progress') {
       vtodo.updatePropertyWithValue('status', 'IN-PROCESS');
@@ -84,8 +94,6 @@ export function generateIcsFromTasks(tasks: Task[]): string {
     }
     
     if (task.due_date) {
-      // due_date is usually "YYYY-MM-DD"
-      // we can parse it to ICAL.Time
       const dueData = task.due_date.split('-');
       if (dueData.length === 3) {
         vtodo.updatePropertyWithValue('due', new ICAL.Time({
@@ -93,7 +101,7 @@ export function generateIcsFromTasks(tasks: Task[]): string {
           month: parseInt(dueData[1]),
           day: parseInt(dueData[2]),
           isDate: true
-        }, undefined as any)); // <-- FIx strict type error
+        }, undefined as any));
       }
     }
 
@@ -101,6 +109,7 @@ export function generateIcsFromTasks(tasks: Task[]): string {
       vtodo.updatePropertyWithValue('categories', task.category);
     }
 
+    // DTSTAMP (created_at)
     if (task.created_at) {
       try {
         const createdTime = ICAL.Time.fromJSDate(new Date(task.created_at));
@@ -110,6 +119,18 @@ export function generateIcsFromTasks(tasks: Task[]): string {
       }
     } else {
       vtodo.updatePropertyWithValue('dtstamp', ICAL.Time.now());
+    }
+
+    // LAST-MODIFIED 기록
+    if (task.last_modified) {
+      try {
+        const modifiedTime = ICAL.Time.fromJSDate(new Date(task.last_modified));
+        vtodo.updatePropertyWithValue('last-modified', modifiedTime);
+      } catch (e) {
+        vtodo.updatePropertyWithValue('last-modified', ICAL.Time.now());
+      }
+    } else {
+      vtodo.updatePropertyWithValue('last-modified', ICAL.Time.now());
     }
 
     if (task.recurrence && task.recurrence !== 'none') {

@@ -19,7 +19,9 @@ export function TaskDetailModal() {
       setTitle(editingTask.title || "");
       setDescription(editingTask.description || "");
       setDueDate(editingTask.due_date || "");
-      setStatus(editingTask.status || "todo");
+      // cancelled 태스크는 모달에서 편집 불가 — todo로 폴백
+      const safeStatus = editingTask.status === 'cancelled' ? 'todo' : editingTask.status;
+      setStatus(safeStatus || "todo");
       setRecurrence(editingTask.recurrence || "none");
     }
   }, [isModalOpen, editingTask]);

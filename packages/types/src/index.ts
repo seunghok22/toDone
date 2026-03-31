@@ -6,6 +6,7 @@ export interface Task {
   due_date: string | null;
   category: string | null;
   created_at: string;
-  status: 'todo' | 'in-progress' | 'done';
+  last_modified: string;
+  status: 'todo' | 'in-progress' | 'done' | 'cancelled';
   recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
 }

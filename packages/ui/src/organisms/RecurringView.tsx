@@ -17,7 +17,7 @@ export function RecurringView() {
   const { t } = useTranslation();
   const { dailySeries, weeklySeries, monthlySeries, hasAnyData } = useMemo(() => {
     const currentDate = new Date(selectedDate);
-    const recurringTasks = tasks.filter(t => t.recurrence !== 'none');
+    const recurringTasks = tasks.filter(t => t.recurrence !== 'none' && t.status !== 'cancelled');
     
     const seriesMap = new Map<string, Task[]>();
     recurringTasks.forEach(task => {

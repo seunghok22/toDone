@@ -72,6 +72,7 @@ export function KanbanBoard() {
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(t => {
+      if (t.status === 'cancelled') return false;
       if (allTabPeriod === 'all') return true;
       
       const effectiveDateStr = t.due_date || t.created_at.split('T')[0];

@@ -37,6 +37,7 @@ export function WeeklyView() {
     const end = endOfWeek(currentDate, { weekStartsOn: 1 });
     
     const wTasks = tasks.filter(t => {
+      if (t.status === 'cancelled') return false;
       if (t.recurrence === 'weekly') return true;
       
       const effectiveDateStr = t.due_date || t.created_at.split('T')[0];

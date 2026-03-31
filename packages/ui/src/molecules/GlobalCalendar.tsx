@@ -17,7 +17,7 @@ export function GlobalCalendar() {
   const dayNames: string[] = t('calendar.days', { returnObjects: true }) as string[];
   
   // Filter out recurring tasks, keep only non-recurring with due_date
-  const calendarTasks = tasks.filter(t => t.recurrence === 'none' && t.due_date);
+  const calendarTasks = tasks.filter(t => t.recurrence === 'none' && t.due_date && t.status !== 'cancelled');
   
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
