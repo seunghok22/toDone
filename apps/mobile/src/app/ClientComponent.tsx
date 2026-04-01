@@ -108,34 +108,45 @@ export default function MobileAppClient() {
           )}
         </header>
 
-        {/* 검색 결과 드롭다운 (#6) */}
-        {isSearchOpen && searchQuery.trim() && (
-          <div className="mx-4 mt-1 bg-card border border-border rounded-xl shadow-xl z-40 overflow-hidden animate-in fade-in duration-150">
-            {searchResults.length === 0 ? (
-              <div className="p-4 text-sm text-center text-muted-foreground">No results found</div>
+        <GlobalCalendar />
+
+        {/* 검색 중일 때 탭 영역 전체를 검색 결과로 교체 (#6) */}
+        {isSearchOpen ? (
+          <div className="w-full flex-1 overflow-y-auto px-4 pt-4 pb-4 animate-in fade-in duration-150">
+            {!searchQuery.trim() ? (
+              <p className="text-center text-muted-foreground mt-12 text-sm">검색어를 입력하세요...</p>
+            ) : searchResults.length === 0 ? (
+              <p className="text-center text-muted-foreground mt-12 text-sm">검색 결과가 없습니다.</p>
             ) : (
-              <div className="flex flex-col max-h-64 overflow-y-auto">
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-muted-foreground mb-1">{searchResults.length}개의 결과</p>
                 {searchResults.map(task => (
                   <button
                     key={task.id}
                     onClick={() => { openEditModal(task); closeSearch(); }}
-                    className="flex items-center gap-3 px-4 py-3 active:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-0"
+                    className="flex items-center gap-3 bg-card px-4 py-3 rounded-xl border border-border active:bg-muted/50 active:border-primary/40 transition-colors text-left w-full shadow-sm"
                   >
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${task.status === 'done' ? 'bg-muted-foreground/40' : task.status === 'in-progress' ? 'bg-blue-400' : 'bg-primary'}`} />
+                    <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${task.status === 'done' ? 'bg-muted-foreground/40' : task.status === 'in-progress' ? 'bg-blue-400' : 'bg-primary'}`} />
                     <div className="flex-1 overflow-hidden">
                       <p className={`text-sm font-medium truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</p>
                       {task.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{task.description}</p>}
                     </div>
-                    {task.due_date && <span className="text-[10px] text-muted-foreground shrink-0">{task.due_date}</span>}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {task.priority && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${
+                          task.priority === 'high' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
+                          task.priority === 'medium' ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' :
+                          'bg-green-500/15 text-green-400 border-green-500/30'
+                        }`}>{task.priority}</span>
+                      )}
+                      {task.due_date && <span className="text-[10px] text-muted-foreground">{task.due_date}</span>}
+                    </div>
                   </button>
                 ))}
               </div>
             )}
           </div>
-        )}
-
-        <GlobalCalendar />
-
+        ) : (
         <Tabs defaultValue="daily" className="w-full flex-1 flex flex-col items-center overflow-hidden">
           <TabsContent value="daily" className="w-full h-full flex flex-col overflow-hidden outline-none px-4 pt-4">
             <div className="flex-1 overflow-y-auto pr-1 pb-2">
@@ -229,6 +240,7 @@ export default function MobileAppClient() {
             <TabsTrigger value="all" className="flex-1 h-full rounded-md data-[state=active]:bg-primary/10 data-[state=active]:text-primary">{t('tab.all')}</TabsTrigger>
           </TabsList>
         </Tabs>
+        )}
 
         <TaskDetailModal />
         <SettingsModal
