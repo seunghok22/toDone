@@ -229,7 +229,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
                     }}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left"
                   >
-                    {isEditingSync ? t('settings.sync.cancelEdit') || 'Cancel Edit' : (showSyncInfo ? '▾ ' : '▸ ') + t('settings.sync.info')}
+                    {isEditingSync ? 'Cancel' : (showSyncInfo ? '▾ ' : '▸ ') + t('settings.sync.info')}
                   </button>
                   {isEditingSync && (
                     <button
@@ -239,16 +239,25 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
                       }}
                       className="text-xs text-primary font-medium hover:text-primary/80 transition-colors"
                     >
-                      {t('settings.sync.save') || 'Save'}
+                      Save
                     </button>
                   )}
                 </div>
                 
                 {showSyncInfo && syncUuid && !isEditingSync && (
                   <div className="bg-muted/30 rounded-lg p-3 flex flex-col gap-1.5 text-xs font-mono border border-border/50">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">UUID</span>
-                      <span className="text-foreground truncate ml-2 max-w-[200px]">{syncUuid}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">UUID</span>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(syncUuid)}
+                          className="text-[10px] text-muted-foreground hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-border/50 hover:border-primary/40"
+                          title="Copy UUID"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <span className="text-foreground break-all select-all leading-relaxed">{syncUuid}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">PIN</span>

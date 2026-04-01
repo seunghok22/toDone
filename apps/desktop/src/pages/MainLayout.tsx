@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@todone/ui';
 import { Button } from '@todone/ui';
 import { Checkbox } from '@todone/ui';
@@ -19,6 +19,14 @@ export function MainLayout() {
   const { t } = useTranslation();
   const isReady = true;
   const updater = useAutoUpdater() as any;
+
+  // Windows에서 지나친 투명도 개선 (#11): OS 감지 후 배경 적용
+  const isWindows = typeof navigator !== 'undefined' && /Win/i.test(navigator.platform);
+
+  // 검색 상태 (#6)
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -72,15 +80,84 @@ export function MainLayout() {
     });
   }, [tasks, selectedDate, allTabPeriod]);
 
+  // 검색 결과 (#6): 제목/내용 기준 실시간 필터링
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return tasks.filter(t =>
+      t.status !== 'cancelled' &&
+      (t.title.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q))
+    ).slice(0, 8);
+  }, [tasks, searchQuery]);
+
+  const openSearch = () => {
+    setIsSearchOpen(true);
+    setTimeout(() => searchInputRef.current?.focus(), 50);
+  };
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setSearchQuery('');
+  };
+
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="w-full max-w-[800px] mx-auto h-screen flex flex-col select-none bg-transparent rounded-2xl overflow-hidden">
+    <div className={`w-full max-w-[800px] mx-auto h-screen flex flex-col select-none rounded-2xl overflow-hidden ${isWindows ? 'bg-background/98 backdrop-blur-none' : 'bg-transparent'}`}>
       {error && <div className="bg-destructive text-destructive-foreground p-3 m-4 mb-0 rounded-xl text-sm">{error}</div>}
       <header className="flex justify-between items-center px-6 pt-4 pb-1 shrink-0">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
-        <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>{t('app.settings')}</Button>
+        {isSearchOpen ? (
+          <div className="flex-1 flex items-center gap-2 animate-in slide-in-from-top-1 duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground shrink-0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search tasks..."
+              className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+            <button onClick={closeSearch} className="text-muted-foreground hover:text-foreground transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="ghost" onClick={openSearch} className="text-muted-foreground hover:text-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>{t('app.settings')}</Button>
+            </div>
+          </>
+        )}
       </header>
+
+      {/* 검색 결과 드롭다운 (#6) */}
+      {isSearchOpen && searchQuery.trim() && (
+        <div className="mx-6 mt-1 mb-0 bg-card border border-border rounded-xl shadow-xl z-40 overflow-hidden animate-in fade-in duration-150">
+          {searchResults.length === 0 ? (
+            <div className="p-4 text-sm text-center text-muted-foreground">No results found</div>
+          ) : (
+            <div className="flex flex-col max-h-60 overflow-y-auto">
+              {searchResults.map(task => (
+                <button
+                  key={task.id}
+                  onClick={() => { openEditModal(task); closeSearch(); }}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-0"
+                >
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${task.status === 'done' ? 'bg-muted-foreground/40' : task.status === 'in-progress' ? 'bg-blue-400' : 'bg-primary'}`} />
+                  <div className="flex-1 overflow-hidden">
+                    <p className={`text-sm font-medium truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</p>
+                    {task.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{task.description}</p>}
+                  </div>
+                  {task.due_date && <span className="text-[10px] text-muted-foreground shrink-0">{task.due_date}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <GlobalCalendar />
 

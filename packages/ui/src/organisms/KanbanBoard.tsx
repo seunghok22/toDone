@@ -10,7 +10,10 @@ function KanbanColumn({ id, title, tasks }: { id: string, title: string, tasks: 
       ref={setNodeRef} 
       className={`flex-1 bg-muted/20 border ${isOver ? 'border-primary' : 'border-transparent'} rounded-xl p-4 flex flex-col gap-3 min-h-0 transition-colors`}
     >
-      <h3 className="font-semibold text-sm text-foreground mb-1 shrink-0">{title} <span className="text-muted-foreground ml-1 font-normal">{tasks.length}</span></h3>
+      <h3 className="font-semibold text-xs text-foreground mb-1 shrink-0 whitespace-nowrap overflow-hidden">
+        <span className="truncate">{title}</span>
+        <span className="text-muted-foreground ml-1 font-normal">{tasks.length}</span>
+      </h3>
       <div className="flex flex-col gap-2 flex-1 overflow-y-auto min-h-0 pr-1 no-scrollbar pb-8">
         {tasks.map(task => <KanbanCard key={task.id} task={task} />)}
       </div>

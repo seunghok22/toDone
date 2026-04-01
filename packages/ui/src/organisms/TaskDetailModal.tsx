@@ -138,7 +138,7 @@ export function TaskDetailModal() {
                 value={dueDate}
                 onChange={e => { setDueDate(e.target.value); setNoDeadline(false); }}
                 disabled={noDeadline}
-                className={`shadow-sm ${noDeadline ? 'opacity-40 cursor-not-allowed' : ''}`}
+                className={`shadow-sm h-11 text-sm font-medium ${noDeadline ? 'opacity-40 cursor-not-allowed' : ''}`}
               />
             </div>
 
