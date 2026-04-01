@@ -1,0 +1,49 @@
+name: "Deploy Mobile PWA"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@9.0.0
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Mobile PWA
+        run: pnpm --filter mobile build
+
+      # ── Vercel 배포 (기본) ──
+      - name: Deploy to Vercel
+        if: ${{ vars.DEPLOY_TARGET != 'cloudflare' }}
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: apps/mobile
+
+      # ── Cloudflare Pages 배포 (대체) ──
+      - name: Deploy to Cloudflare Pages
+        if: ${{ vars.DEPLOY_TARGET == 'cloudflare' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/mobile/.next --project-name=todone-mobile

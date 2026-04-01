@@ -1,0 +1,15 @@
+{
+  "name": "@todone/store",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@tauri-apps/plugin-fs": "^2.4.5",
+    "@tauri-apps/plugin-updater": "^2.10.0",
+    "@todone/types": "workspace:*",
+    "@todone/utils": "workspace:*",
+    "date-fns": "^4.1.0",
+    "lodash-es": "^4.17.23",
+    "zustand": "^5.0.12"
+  }
+}

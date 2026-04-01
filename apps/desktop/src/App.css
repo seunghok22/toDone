@@ -1,0 +1,73 @@
+@import "tailwindcss";
+@source "../../../packages/ui/src";
+@import "shadcn/tailwind.css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+}
+
+:root, .dark {
+  /* Stitch Design System - Crystalline Observer */
+  --background: rgba(19, 19, 21, 0.7); /* surface at 70% */
+  --foreground: #e4e2e4; /* on_surface */
+  --primary: #aac7ff;
+  --primary-foreground: #003064; /* on_primary */
+  --secondary: #353437; /* surface_container_highest */
+  --secondary-foreground: #e4e2e4;
+  --muted: #1f1f21; /* surface_container */
+  --muted-foreground: #c1c6d7; /* on_surface_variant */
+  --accent: #3e90ff; /* primary_container */
+  --accent-foreground: #002957; /* on_primary_container */
+  --card: #1f1f21;
+  --card-foreground: #e4e2e4;
+  --popover: #2a2a2c; /* surface_container_high */
+  --popover-foreground: #e4e2e4;
+  --border: rgba(65, 71, 85, 0.2); /* Ghost border: outline-variant @ 20% */
+  --input: #0e0e10; /* surface_container_lowest */
+  --ring: #8b90a0; /* outline */
+  --radius: 0.75rem; /* md */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    background: transparent;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Inter", sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    background-color: transparent;
+    overflow: hidden;
+  }
+  #root {
+    min-height: 100vh;
+    width: 100vw;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+}
