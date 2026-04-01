@@ -9,4 +9,5 @@ export interface Task {
   last_modified: string;
   status: 'todo' | 'in-progress' | 'done' | 'cancelled';
   recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
+  priority?: 'high' | 'medium' | 'low' | null;
 }

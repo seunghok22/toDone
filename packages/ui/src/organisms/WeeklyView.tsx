@@ -7,8 +7,18 @@ import { useTranslation } from "react-i18next";
 
 const TaskItem = ({ task }: { task: Task }) => {
   const { toggleTask, openEditModal } = useTaskStore();
+  const today = new Date().toISOString().split('T')[0];
+  const isOverdue = task.due_date && task.due_date < today && task.status !== 'done';
+
+  const borderClass = isOverdue
+    ? 'border-red-500/60'
+    : task.priority === 'high' ? 'border-red-500/20'
+    : task.priority === 'medium' ? 'border-yellow-500/20'
+    : task.priority === 'low' ? 'border-green-500/20'
+    : 'border-border';
+
   return (
-    <div onClick={() => openEditModal(task)} className="cursor-pointer bg-card p-3 rounded-lg border border-border flex items-center gap-3 transition-colors hover:bg-muted/50 hover:border-primary/40 group shadow-sm">
+    <div onClick={() => openEditModal(task)} className={`cursor-pointer bg-card p-3 rounded-lg border ${borderClass} flex items-center gap-3 transition-colors hover:bg-muted/50 hover:border-primary/40 group shadow-sm`}>
       <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center shrink-0">
         <Checkbox 
           checked={task.status === 'done'}
@@ -18,11 +28,23 @@ const TaskItem = ({ task }: { task: Task }) => {
       <span className={`text-sm flex-1 truncate ${task.status === 'done' ? 'line-through text-muted-foreground opacity-70' : 'text-foreground font-medium'}`}>
         {task.title}
       </span>
-      {task.due_date && (
-        <span className="text-[10px] bg-secondary text-secondary-foreground border border-border/50 px-2 py-1 rounded-md font-bold uppercase tracking-wider shrink-0 shadow-sm">
-          {format(parseISO(task.due_date), 'MM.dd')}
-        </span>
-      )}
+      <div className="flex items-center gap-1.5 shrink-0">
+        {isOverdue && (
+          <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Overdue</span>
+        )}
+        {task.priority && (
+          <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border ${
+            task.priority === 'high' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
+            task.priority === 'medium' ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' :
+            'bg-green-500/15 text-green-400 border-green-500/30'
+          }`}>{task.priority}</span>
+        )}
+        {task.due_date && (
+          <span className="text-[10px] bg-secondary text-secondary-foreground border border-border/50 px-2 py-1 rounded-md font-bold uppercase tracking-wider shadow-sm">
+            {format(parseISO(task.due_date), 'MM.dd')}
+          </span>
+        )}
+      </div>
     </div>
   );
 };

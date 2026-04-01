@@ -47,9 +47,17 @@ export function MainLayout() {
     };
   }, [loadTasks, syncRecurringTasks]);
 
+  const today = new Date().toISOString().split('T')[0];
+
   const dailyTasks = useMemo(() => {
     return tasks.filter(t => {
       if (t.status === 'cancelled') return false;
+
+      // No-deadline 태스크: 항상 Daily 뷰에 노출 (#9)
+      if (!t.due_date && t.recurrence === 'none') {
+        return true;
+      }
+
       const effectiveDateStr = t.due_date || ((t.recurrence === 'none') ? t.created_at.split('T')[0] : null);
       if (!effectiveDateStr) return false;
 
@@ -83,8 +91,21 @@ export function MainLayout() {
               {dailyTasks.length === 0 && (
                 <p className="text-center text-muted-foreground mt-10 text-sm">{t('daily.empty')}</p>
               )}
-              {dailyTasks.map((task) => (
-                <div key={task.id} onClick={() => openEditModal(task)} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer">
+              {dailyTasks.map((task) => {
+                const isOverdue = task.due_date && task.due_date < today && task.status !== 'done';
+                const priorityBg: Record<string, string> = {
+                  high: 'bg-red-500/10 border-red-500/30',
+                  medium: 'bg-yellow-500/8 border-yellow-500/20',
+                  low: 'bg-green-500/8 border-green-500/20',
+                };
+                const cardBorder = isOverdue
+                  ? 'border-red-500/60 shadow-red-500/10'
+                  : task.priority && priorityBg[task.priority]
+                    ? priorityBg[task.priority]
+                    : 'border-border';
+
+                return (
+                <div key={task.id} onClick={() => openEditModal(task)} className={`bg-card p-4 rounded-xl flex items-center justify-between gap-3 border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer ${cardBorder}`}>
                   <div className="flex items-center gap-3 flex-1 overflow-hidden">
                     <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center">
                       <Checkbox
@@ -100,13 +121,29 @@ export function MainLayout() {
                       {task.title}
                     </label>
                   </div>
-                  {task.recurrence !== 'none' && (
-                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-md font-bold uppercase tracking-wider shrink-0">
-                      {task.recurrence}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isOverdue && (
+                      <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Overdue</span>
+                    )}
+                    {!task.due_date && (
+                      <span className="text-[10px] bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Always</span>
+                    )}
+                    {task.priority && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border ${
+                        task.priority === 'high' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
+                        task.priority === 'medium' ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' :
+                        'bg-green-500/15 text-green-400 border-green-500/30'
+                      }`}>{task.priority}</span>
+                    )}
+                    {task.recurrence !== 'none' && (
+                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-md font-bold uppercase tracking-wider">
+                        {task.recurrence}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div className="flex shrink-0 px-1 mt-2">

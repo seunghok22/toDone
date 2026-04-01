@@ -26,6 +26,10 @@ interface TaskStore {
   allTabPeriod: 'all' | 'day' | 'week' | 'month' | 'year';
   setAllTabPeriod: (period: 'all' | 'day' | 'week' | 'month' | 'year') => void;
 
+  // 자동 삭제 설정 (0: 끄기, 7: 7일, 30: 30일)
+  autoDeleteDays: 0 | 7 | 30;
+  setAutoDeleteDays: (days: 0 | 7 | 30) => void;
+
   updateTaskStatus: (id: string, newStatus: 'todo' | 'in-progress' | 'done') => Promise<void>;
   toggleTask: (id: string, currentStatus: number) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -153,6 +157,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     set({ allTabPeriod: period });
   },
 
+  autoDeleteDays: (isBrowser() ? (parseInt(localStorage.getItem('autoDeleteDays') || '0') as 0 | 7 | 30) : 0),
+  setAutoDeleteDays: (days) => {
+    localStorage.setItem('autoDeleteDays', String(days));
+    set({ autoDeleteDays: days });
+  },
+
   // Cloud Sync state
   syncUuid: isBrowser() ? (localStorage.getItem(SYNC_UUID_KEY) || '') : '',
   syncPin: isBrowser() ? (localStorage.getItem(SYNC_PIN_KEY) || '') : '',
@@ -177,8 +187,28 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   loadTasks: async () => {
     try {
       const icsString = await loadIcsData();
-      const loadedTasks = parseIcsToTasks(icsString);
+      let loadedTasks = parseIcsToTasks(icsString);
       loadedTasks.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      // 자동 삭제: autoDeleteDays 설정 기반으로 오래된 태스크 soft delete
+      const autoDeleteDays = get().autoDeleteDays;
+      if (autoDeleteDays > 0) {
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - autoDeleteDays);
+        const timestamp = nowIso();
+        let didDelete = false;
+        loadedTasks = loadedTasks.map(t => {
+          if (t.status === 'cancelled') return t;
+          const refDate = t.due_date ? new Date(t.due_date) : new Date(t.created_at.split('T')[0]);
+          if (refDate < cutoff) {
+            didDelete = true;
+            return { ...t, status: 'cancelled' as const, last_modified: timestamp };
+          }
+          return t;
+        });
+        if (didDelete) triggerSave(loadedTasks);
+      }
+
       set({ tasks: loadedTasks, error: null });
     } catch (e) {
       console.error("Failed to load tasks", e);
@@ -191,23 +221,24 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const currentTasks = [...get().tasks];
       const timestamp = nowIso();
       if (taskData.id) {
-        const { id, title, description, due_date, category, status, recurrence } = taskData;
+        const { id, title, description, due_date, category, status, recurrence, priority } = taskData;
         const isCompleted = status === 'done' ? 1 : 0;
         
         const idx = currentTasks.findIndex(t => t.id === id);
         if (idx !== -1) {
-          currentTasks[idx] = { ...currentTasks[idx], title, description: description||null, due_date: due_date||null, category: category||null, status, is_completed: isCompleted, recurrence: recurrence || 'none', last_modified: timestamp } as Task;
+          currentTasks[idx] = { ...currentTasks[idx], title, description: description||null, due_date: due_date||null, category: category||null, status, is_completed: isCompleted, recurrence: recurrence || 'none', priority: priority ?? null, last_modified: timestamp } as Task;
         }
       } else {
         const id = Date.now().toString() + Math.random().toString(36).substring(2);
-        const { title, description, due_date, category, recurrence } = taskData;
+        const { title, description, due_date, category, recurrence, priority } = taskData;
         const created_at = timestamp;
         const status: Task['status'] = 'todo';
         
         currentTasks.unshift({
            id, title: title!, description: description || null, is_completed: 0, 
            due_date: due_date || null, category: category || null, 
-           created_at, last_modified: timestamp, status, recurrence: recurrence || 'none'
+           created_at, last_modified: timestamp, status, recurrence: recurrence || 'none',
+           priority: priority ?? null
         });
       }
       set({ tasks: currentTasks, isModalOpen: false, editingTask: null, isTasksChangedBySync: false });

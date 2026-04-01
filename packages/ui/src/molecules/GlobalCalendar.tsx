@@ -36,8 +36,8 @@ export function GlobalCalendar() {
         </div>
       </div>
       <div className="grid grid-cols-7 mb-2">
-        {dayNames.map((day: string) => (
-          <div key={day} className="text-center text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{day}</div>
+        {dayNames.map((day: string, idx: number) => (
+          <div key={day} className={`text-center text-[10px] uppercase font-bold tracking-wider ${idx === 0 ? 'text-red-400' : 'text-muted-foreground'}`}>{day}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 auto-rows-fr gap-1">
@@ -46,6 +46,7 @@ export function GlobalCalendar() {
           const dayTasks = calendarTasks.filter(t => t.due_date === dateStr);
           const isCurrentMonth = isSameMonth(day, monthStart);
           const isSelected = dateStr === selectedDate;
+          const isSunday = day.getDay() === 0;
           
           return (
             <button 
@@ -56,7 +57,15 @@ export function GlobalCalendar() {
               }}
               className={`p-1 flex flex-col items-center justify-start h-10 rounded-lg transition-all border ${isSelected ? 'border-primary bg-primary/10 shadow-sm' : 'border-transparent hover:border-border hover:bg-white/5'} ${!isCurrentMonth ? 'opacity-35' : ''}`}
             >
-              <div className={`text-[11px] font-bold w-5 h-5 flex items-center justify-center rounded-full mb-1 ${isSelected ? 'bg-primary text-primary-foreground' : isToday(day) ? 'bg-muted-foreground/20 text-foreground' : 'text-foreground'}`}>
+              <div className={`text-[11px] font-bold w-5 h-5 flex items-center justify-center rounded-full mb-1 ${
+                isSelected
+                  ? 'bg-primary text-primary-foreground'
+                  : isToday(day)
+                    ? 'bg-muted-foreground/20 text-foreground'
+                    : isSunday
+                      ? 'text-red-400'
+                      : 'text-foreground'
+              }`}>
                 {format(day, 'd')}
               </div>
               <div className="flex gap-0.5 mt-auto flex-wrap justify-center w-full px-0.5 h-2 overflow-hidden">
@@ -68,6 +77,7 @@ export function GlobalCalendar() {
             </button>
           );
         })}
+
       </div>
     </div>
   );
