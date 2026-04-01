@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@todone/ui';
 import { Button } from '@todone/ui';
 import { Checkbox } from '@todone/ui';
-import { useTaskStore, isTaskInPeriod } from '@todone/store';
+import { useTaskStore, useAutoSync, isTaskInPeriod } from '@todone/store';
 import { KanbanBoard } from '@todone/ui';
 import { WeeklyView } from '@todone/ui';
 import { RecurringView } from '@todone/ui';
@@ -15,6 +15,7 @@ import { UpdateModal } from '@todone/ui';
 
 export function MainLayout() {
   const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, allTabPeriod, openCreateModal, toggleTask, openEditModal, setSettingsModalOpen } = useTaskStore();
+  useAutoSync();
   const { t } = useTranslation();
   const isReady = true;
   const updater = useAutoUpdater() as any;

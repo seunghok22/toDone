@@ -41,7 +41,7 @@ interface TaskStore {
   lastSyncedAt: string | null;
   syncError: string | null;
   initSyncCredentials: () => Promise<void>;
-  syncWithCloud: () => Promise<void>;
+  syncWithCloud: (options?: { keepalive?: boolean }) => Promise<void>;
 
   // Auto updater
   pendingUpdate: Update | null;
@@ -379,8 +379,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   /** 클라우드 동기화: download → merge → upload */
-  syncWithCloud: async () => {
-    const { syncUuid, syncPin, currentEtag, tasks, isSyncing } = get();
+  syncWithCloud: async (options?: { keepalive?: boolean }) => {
+    const { syncUuid, syncPin, tasks, isSyncing } = get();
     if (!syncUuid || !syncPin || isSyncing) return;
 
     set({ isSyncing: true, syncError: null });
@@ -407,7 +407,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       await saveIcsData(mergedIcs);
 
       // 5. R2에 업로드 (ETag 검증)
-      const uploadResult = await uploadToR2(syncUuid, syncPin, mergedIcs, downloadResult.etag);
+      const uploadResult = await uploadToR2(syncUuid, syncPin, mergedIcs, downloadResult.etag, options);
       
       if (uploadResult.conflict) {
         // ETag 충돌 — 재다운로드하여 재병합

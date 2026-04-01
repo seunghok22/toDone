@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTaskStore } from '@todone/store';
 import { parseIcsToTasks } from '@todone/utils';
-import { Button } from '../atoms/button';
 import { useTranslation } from 'react-i18next';
 
 export function IcsImportSection() {

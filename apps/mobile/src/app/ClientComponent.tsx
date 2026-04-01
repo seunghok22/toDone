@@ -3,11 +3,12 @@
 import { useEffect, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent, Button, Checkbox, KanbanBoard, WeeklyView, RecurringView, GlobalCalendar, TaskDetailModal, SettingsModal } from '@todone/ui';
 import { useTranslation } from 'react-i18next';
-import { useTaskStore, isTaskInPeriod } from '@todone/store';
+import { useTaskStore, useAutoSync, isTaskInPeriod } from '@todone/store';
 import I18nProvider from '../providers/I18nProvider';
 
 export default function MobileAppClient() {
   const { tasks, loadTasks, syncRecurringTasks, error, selectedDate, allTabPeriod, openCreateModal, toggleTask, openEditModal, isSettingsModalOpen, setSettingsModalOpen } = useTaskStore();
+  useAutoSync();
   const isReady = true;
 
   const { t } = useTranslation();

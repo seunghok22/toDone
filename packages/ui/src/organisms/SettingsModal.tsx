@@ -127,7 +127,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
             
             <Button
               variant="outline"
-              onClick={syncWithCloud}
+              onClick={() => syncWithCloud()}
               disabled={isSyncing || !syncUuid}
               className={`w-full justify-between items-center h-10 font-medium rounded-lg transition-colors ${isSyncing ? 'opacity-60' : 'hover:border-primary/50'}`}
             >

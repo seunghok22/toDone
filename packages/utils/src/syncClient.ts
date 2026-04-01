@@ -55,7 +55,8 @@ export async function uploadToR2(
   uuid: string,
   pin: string,
   icsContent: string,
-  etag: string
+  etag: string,
+  options?: { keepalive?: boolean }
 ): Promise<{ success: boolean; newEtag?: string; conflict?: boolean }> {
   try {
     const res = await fetch(`${WORKER_BASE_URL}/sync/${uuid}`, {
@@ -66,6 +67,7 @@ export async function uploadToR2(
         'If-Match': etag,
       },
       body: icsContent,
+      keepalive: options?.keepalive,
     });
 
     if (res.status === 412) {
