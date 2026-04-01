@@ -1,6 +1,6 @@
 # 📍 toDone 개발 로드맵
 
-> **최종 갱신일:** 2026-03-28  
+> **최종 갱신일:** 2026-04-01  
 > 본 문서는 GitHub Issues를 기반으로 구성된 전체 개발 로드맵입니다.
 
 ---
@@ -100,24 +100,60 @@
 
 ## ✨ Phase 15: UI/UX 고도화 및 사용자 편의성 강화
 
-> **핵심 목표:** 마감일 경고, 검색, 자동 정리, 달력 UX 개선 등을 통해 서비스 완성도를 한 단계 끌어올립니다.
+> **핵심 목표:** 마감일 경고, 검색, 자동 정리, 달력 UX 개선, 우선순위, 플랫폼별 렌더링 등 다양한 개선을 통해 서비스 완성도를 한 단계 끌어올립니다.
 
-**관련 이슈:** [#4 UI/UX 고도화 및 사용자 편의성 강화](https://github.com/seunghok22/toDone/issues/4), [#5](https://github.com/seunghok22/toDone/issues/5), [#6](https://github.com/seunghok22/toDone/issues/6), [#7](https://github.com/seunghok22/toDone/issues/7), [#8](https://github.com/seunghok22/toDone/issues/8), [#9](https://github.com/seunghok22/toDone/issues/9)
+**관련 이슈:** [#4 UI/UX 고도화 및 사용자 편의성 강화](https://github.com/seunghok22/toDone/issues/4), [#5](https://github.com/seunghok22/toDone/issues/5), [#6](https://github.com/seunghok22/toDone/issues/6), [#7](https://github.com/seunghok22/toDone/issues/7), [#8](https://github.com/seunghok22/toDone/issues/8), [#9](https://github.com/seunghok22/toDone/issues/9), [#11](https://github.com/seunghok22/toDone/issues/11), [#12](https://github.com/seunghok22/toDone/issues/12), [#13](https://github.com/seunghok22/toDone/issues/13), [#14](https://github.com/seunghok22/toDone/issues/14)
 
-- **#8** 기한 초과(Overdue) 미완료 작업 시각적 강조 표시
+### 15-1. 시각적 인지 강화
+
+- **#8** `[common]` 기한 초과(Overdue) 미완료 작업 시각적 강조 표시
   - 조건: `현재 날짜 > dueDate` AND `completed === false`
   - 붉은색 뱃지 또는 경고 테두리 조건부 CSS 적용
-- **#9** 마감일 없는(No Deadline) 상시 노출 태스크 등록 지원
-  - 추가/수정 모달에서 '기한 없음' 옵션 제공
-  - Daily 뷰에서 기한 없는 태스크 항상 노출
-- **#6** 태스크 검색(Search) 기능 구현
-  - 상단 헤더에 검색 아이콘 + 텍스트 입력 필드 추가
-  - 제목/내용 기준 실시간 필터링, 결과 클릭 시 상세 모달 연결
-- **#7** 추가/수정 모달 내 달력(Date Picker) UX/UI 개선
-  - 달력 컴포넌트 크기 상향, 날짜 선택 시 자동 닫힘 로직 추가
-- **#5** 마감 기한 초과 태스크 자동 삭제 및 사용자 설정 기능
+  - 완료된 작업은 마감일이 지났더라도 강조 표시 제거
+
+- **#12** `[common]` Task 우선순위 추가 및 UI 개선
+  - 태스크 생성/수정 시 3단계 우선순위(High / Medium / Low) 설정 옵션 추가
+  - 우선순위에 따라 태스크 배경색을 밝기로 차별화 (High → 가장 밝게)
+  - Todo / In Progress 상태에 따라 글자색 지정 (기본 / 파랑 / 빨강)
+
+- **#13** `[common]` 메인 캘린더의 주말 및 공휴일 색상 표시
+  - 일요일과 공휴일은 붉은색으로 표기
+
+### 15-2. 유연한 태스크 관리
+
+- **#9** `[common]` 마감일 없는(No Deadline) 상시 노출 태스크 등록 지원
+  - 추가/수정 모달에서 '기한 없음' 옵션 제공 (`dueDate = null`)
+  - Daily 뷰에서 기한 없는 태스크 항상 노출 (별도 섹션 또는 최상단)
+  - 수정 모달 호환성 유지 — 기한 추후 부여 가능
+
+- **#5** `[common]` 마감 기한 초과 태스크 자동 삭제 및 사용자 설정 기능
   - `SettingsModal`에 '오래된 작업 자동 삭제' 설정 항목 추가 (끄기 / 7일 / 30일)
-  - 앱 로드 시 설정 기한 초과 태스크 일괄 삭제 로직
+  - `useTaskStore`에 설정값 상태 추가
+  - 앱 로드 시 또는 날짜 변경 시 설정 기한 초과 태스크 일괄 삭제 로직
+
+### 15-3. 조작 편의성(UX) 극대화
+
+- **#6** `[common]` 태스크 검색(Search) 기능 구현
+  - 상단 헤더에 검색(돋보기) 아이콘 + 텍스트 입력 필드 추가
+  - 제목/내용 기준 실시간 필터링, 결과 클릭 시 상세 모달 연결
+
+- **#7** `[common]` 추가/수정 모달 내 달력(Date Picker) UX/UI 개선
+  - 달력 컴포넌트 크기 상향 (Width / Height / 폰트 크기)
+  - 날짜 선택 시 달력 팝업 자동 닫힘 로직 추가
+
+### 15-4. 플랫폼별 렌더링 수정
+
+- **#11** `[windows]` Windows에서 지나친 투명 UI 개선
+  - macOS와 달리 Windows 환경에서 캘린더와 배경이 지나치게 투명하여 가독성 저하
+  - Windows OS 감지 후 투명도 값 조정 또는 대체 배경색 적용
+
+### 15-5. 기타 UI 개선
+
+- **#14** `[mobile]` `[common]` 기타 UI 개선
+  - `[mobile]` All 영역에서 "In Progress" 텍스트 2줄 줄바꿈 문제 수정 → 단일 라인 통일
+  - `[common]` Settings > 계정 정보에서 버튼 레이블 단순화: `settings.sync.cancelEdit` → `Cancel`, `settings.sync.save` → `Save`
+  - `[common]` UUID 말줄임(...) 표시 최소화 — 최대한 길게 표기
+  - `[common]` UUID 복사 버튼 추가
 
 ---
 
