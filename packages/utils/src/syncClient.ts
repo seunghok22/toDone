@@ -74,7 +74,8 @@ export async function uploadToR2(
     }
 
     if (!res.ok) {
-      console.error('[SyncClient] upload failed:', res.status);
+      const errorText = await res.text();
+      console.error('[SyncClient] upload failed:', res.status, errorText);
       return { success: false, conflict: false };
     }
 

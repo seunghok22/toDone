@@ -9,3 +9,4 @@ export * from './organisms/SettingsModal';
 export * from './organisms/TaskDetailModal';
 export * from './organisms/UpdateModal';
 export * from './organisms/WeeklyView';
+export * from './organisms/IcsImportSection';
