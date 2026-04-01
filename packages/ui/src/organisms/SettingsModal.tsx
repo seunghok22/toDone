@@ -21,6 +21,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
   
   const {
     allTabPeriod, setAllTabPeriod,
+    autoDeleteDays, setAutoDeleteDays,
     pendingUpdate,
     syncUuid, syncPin, isSyncing, lastSyncedAt, syncError,
     initSyncCredentials, syncWithCloud,
@@ -113,6 +114,26 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
               <option value="month">{t('settings.allTabPeriod.month')}</option>
               <option value="year">{t('settings.allTabPeriod.year')}</option>
             </select>
+          </div>
+
+          {/* Auto Delete (#5) */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-muted-foreground tracking-wider">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1.5 -mt-0.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              오래된 작업 자동 삭제
+            </label>
+            <p className="text-xs text-muted-foreground mb-1">설정한 기간이 지난 태스크를 앱 시작 시 자동으로 삭제합니다.</p>
+            <div className="flex gap-2">
+              {([0, 7, 30] as const).map((days) => (
+                <button
+                  key={days}
+                  onClick={() => setAutoDeleteDays(days)}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors border ${autoDeleteDays === days ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:bg-muted/50'}`}
+                >
+                  {days === 0 ? '끄기' : `${days}일`}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Cloud Sync */}
@@ -208,7 +229,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
                     }}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left"
                   >
-                    {isEditingSync ? t('settings.sync.cancelEdit') || 'Cancel Edit' : (showSyncInfo ? '▾ ' : '▸ ') + t('settings.sync.info')}
+                    {isEditingSync ? 'Cancel' : (showSyncInfo ? '▾ ' : '▸ ') + t('settings.sync.info')}
                   </button>
                   {isEditingSync && (
                     <button
@@ -218,16 +239,25 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
                       }}
                       className="text-xs text-primary font-medium hover:text-primary/80 transition-colors"
                     >
-                      {t('settings.sync.save') || 'Save'}
+                      Save
                     </button>
                   )}
                 </div>
                 
                 {showSyncInfo && syncUuid && !isEditingSync && (
                   <div className="bg-muted/30 rounded-lg p-3 flex flex-col gap-1.5 text-xs font-mono border border-border/50">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">UUID</span>
-                      <span className="text-foreground truncate ml-2 max-w-[200px]">{syncUuid}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">UUID</span>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(syncUuid)}
+                          className="text-[10px] text-muted-foreground hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-border/50 hover:border-primary/40"
+                          title="Copy UUID"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <span className="text-foreground break-all select-all leading-relaxed">{syncUuid}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">PIN</span>

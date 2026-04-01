@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@todone/ui';
 import { Button } from '@todone/ui';
 import { Checkbox } from '@todone/ui';
@@ -19,6 +19,14 @@ export function MainLayout() {
   const { t } = useTranslation();
   const isReady = true;
   const updater = useAutoUpdater() as any;
+
+  // Windows에서 지나친 투명도 개선 (#11): OS 감지 후 배경 적용
+  const isWindows = typeof navigator !== 'undefined' && /Win/i.test(navigator.platform);
+
+  // 검색 상태 (#6)
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -47,9 +55,17 @@ export function MainLayout() {
     };
   }, [loadTasks, syncRecurringTasks]);
 
+  const today = new Date().toISOString().split('T')[0];
+
   const dailyTasks = useMemo(() => {
     return tasks.filter(t => {
       if (t.status === 'cancelled') return false;
+
+      // No-deadline 태스크: 항상 Daily 뷰에 노출 (#9)
+      if (!t.due_date && t.recurrence === 'none') {
+        return true;
+      }
+
       const effectiveDateStr = t.due_date || ((t.recurrence === 'none') ? t.created_at.split('T')[0] : null);
       if (!effectiveDateStr) return false;
 
@@ -64,27 +80,120 @@ export function MainLayout() {
     });
   }, [tasks, selectedDate, allTabPeriod]);
 
+  // 검색 결과 (#6): 제목/내용 기준 실시간 필터링
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return tasks.filter(t =>
+      t.status !== 'cancelled' &&
+      (t.title.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q))
+    ).slice(0, 8);
+  }, [tasks, searchQuery]);
+
+  const openSearch = () => {
+    setIsSearchOpen(true);
+    setTimeout(() => searchInputRef.current?.focus(), 50);
+  };
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setSearchQuery('');
+  };
+
   if (!isReady) return <div className="p-4 flex h-screen items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="w-full max-w-[800px] mx-auto h-screen flex flex-col select-none bg-transparent rounded-2xl overflow-hidden">
+    <div className={`w-full max-w-[800px] mx-auto h-screen flex flex-col select-none rounded-2xl overflow-hidden ${isWindows ? 'bg-background/98 backdrop-blur-none' : 'bg-transparent'}`}>
       {error && <div className="bg-destructive text-destructive-foreground p-3 m-4 mb-0 rounded-xl text-sm">{error}</div>}
       <header className="flex justify-between items-center px-6 pt-4 pb-1 shrink-0">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
-        <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>{t('app.settings')}</Button>
+        {isSearchOpen ? (
+          <div className="flex-1 flex items-center gap-2 animate-in slide-in-from-top-1 duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground shrink-0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search tasks..."
+              className="flex-1 bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+            <button onClick={closeSearch} className="text-muted-foreground hover:text-foreground transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">toDone</h1>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="ghost" onClick={openSearch} className="text-muted-foreground hover:text-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSettingsModalOpen(true)}>{t('app.settings')}</Button>
+            </div>
+          </>
+        )}
       </header>
 
       <GlobalCalendar />
 
-      <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden px-6 pt-4 pb-2">
+      {/* 검색 중일 때 탭 영역 전체를 검색 결과로 교체 (#6) */}
+      {isSearchOpen ? (
+        <div className="w-full flex-1 overflow-y-auto px-6 pt-4 pb-4 animate-in fade-in duration-150">
+          {!searchQuery.trim() ? (
+            <p className="text-center text-muted-foreground mt-12 text-sm">검색어를 입력하세요...</p>
+          ) : searchResults.length === 0 ? (
+            <p className="text-center text-muted-foreground mt-12 text-sm">검색 결과가 없습니다.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-muted-foreground mb-1">{searchResults.length}개의 결과</p>
+              {searchResults.map(task => (
+                <button
+                  key={task.id}
+                  onClick={() => { openEditModal(task); closeSearch(); }}
+                  className="flex items-center gap-3 bg-card px-4 py-3 rounded-xl border border-border hover:bg-muted/50 hover:border-primary/40 transition-colors text-left w-full shadow-sm"
+                >
+                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${task.status === 'done' ? 'bg-muted-foreground/40' : task.status === 'in-progress' ? 'bg-blue-400' : 'bg-primary'}`} />
+                  <div className="flex-1 overflow-hidden">
+                    <p className={`text-sm font-medium truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</p>
+                    {task.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{task.description}</p>}
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {task.priority && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${
+                        task.priority === 'high' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
+                        task.priority === 'medium' ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' :
+                        'bg-green-500/15 text-green-400 border-green-500/30'
+                      }`}>{task.priority}</span>
+                    )}
+                    {task.due_date && <span className="text-[10px] text-muted-foreground">{task.due_date}</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <Tabs defaultValue="daily" className="w-full h-full flex flex-col items-center overflow-hidden px-6 pt-4 pb-2">
         <TabsContent value="daily" className="w-full h-full flex flex-col overflow-hidden outline-none">
           <div className="flex-1 overflow-y-auto pr-2 pb-2">
             <div className="flex flex-col gap-3">
               {dailyTasks.length === 0 && (
                 <p className="text-center text-muted-foreground mt-10 text-sm">{t('daily.empty')}</p>
               )}
-              {dailyTasks.map((task) => (
-                <div key={task.id} onClick={() => openEditModal(task)} className="bg-card p-4 rounded-xl flex items-center justify-between gap-3 border border-border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer">
+              {dailyTasks.map((task) => {
+                const isOverdue = task.due_date && task.due_date < today && task.status !== 'done';
+                const priorityBg: Record<string, string> = {
+                  high: 'bg-red-500/10 border-red-500/30',
+                  medium: 'bg-yellow-500/8 border-yellow-500/20',
+                  low: 'bg-green-500/8 border-green-500/20',
+                };
+                const cardBorder = isOverdue
+                  ? 'border-red-500/60 shadow-red-500/10'
+                  : task.priority && priorityBg[task.priority]
+                    ? priorityBg[task.priority]
+                    : 'border-border';
+
+                return (
+                <div key={task.id} onClick={() => openEditModal(task)} className={`bg-card p-4 rounded-xl flex items-center justify-between gap-3 border group transition-all hover:bg-card/80 hover:border-primary/40 shadow-sm cursor-pointer ${cardBorder}`}>
                   <div className="flex items-center gap-3 flex-1 overflow-hidden">
                     <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()} className="flex items-center">
                       <Checkbox
@@ -100,13 +209,29 @@ export function MainLayout() {
                       {task.title}
                     </label>
                   </div>
-                  {task.recurrence !== 'none' && (
-                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-md font-bold uppercase tracking-wider shrink-0">
-                      {task.recurrence}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isOverdue && (
+                      <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Overdue</span>
+                    )}
+                    {!task.due_date && (
+                      <span className="text-[10px] bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Always</span>
+                    )}
+                    {task.priority && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border ${
+                        task.priority === 'high' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
+                        task.priority === 'medium' ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' :
+                        'bg-green-500/15 text-green-400 border-green-500/30'
+                      }`}>{task.priority}</span>
+                    )}
+                    {task.recurrence !== 'none' && (
+                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-md font-bold uppercase tracking-wider">
+                        {task.recurrence}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div className="flex shrink-0 px-1 mt-2">
@@ -140,6 +265,7 @@ export function MainLayout() {
           <TabsTrigger value="all" className="flex-1 h-full rounded-lg data-[state=active]:shadow-sm">{t('tab.all')}</TabsTrigger>
         </TabsList>
       </Tabs>
+      )}
 
       <TaskDetailModal />
       <SettingsModal />
