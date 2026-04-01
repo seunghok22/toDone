@@ -37,6 +37,9 @@ export async function downloadFromR2(uuid: string, pin: string): Promise<SyncRes
     });
 
     if (!res.ok) {
+      if (res.status === 404) {
+        return { icsContent: '', etag: '"empty"' };
+      }
       console.error('[SyncClient] download failed:', res.status, await res.text());
       return null;
     }

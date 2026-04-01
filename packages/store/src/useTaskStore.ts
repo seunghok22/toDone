@@ -38,9 +38,11 @@ interface TaskStore {
   syncPin: string;
   currentEtag: string;
   isSyncing: boolean;
+  isTasksChangedBySync: boolean;
   lastSyncedAt: string | null;
   syncError: string | null;
   initSyncCredentials: () => Promise<void>;
+  setSyncCredentials: (uuid: string, pin: string) => void;
   syncWithCloud: (options?: { keepalive?: boolean }) => Promise<void>;
 
   // Auto updater
@@ -156,6 +158,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   syncPin: isBrowser() ? (localStorage.getItem(SYNC_PIN_KEY) || '') : '',
   currentEtag: isBrowser() ? (localStorage.getItem(SYNC_ETAG_KEY) || '"empty"') : '"empty"',
   isSyncing: false,
+  isTasksChangedBySync: false,
   lastSyncedAt: null,
   syncError: null,
 
@@ -207,7 +210,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
            created_at, last_modified: timestamp, status, recurrence: recurrence || 'none'
         });
       }
-      set({ tasks: currentTasks, isModalOpen: false, editingTask: null });
+      set({ tasks: currentTasks, isModalOpen: false, editingTask: null, isTasksChangedBySync: false });
       triggerSave(currentTasks);
     } catch (e) {
       console.error("Failed to save task", e);
@@ -220,7 +223,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const isCompleted = newStatus === 'done' ? 1 : 0;
       const timestamp = nowIso();
       const currentTasks = get().tasks.map(t => t.id === id ? { ...t, status: newStatus, is_completed: isCompleted, last_modified: timestamp } : t);
-      set({ tasks: currentTasks });
+      set({ tasks: currentTasks, isTasksChangedBySync: false });
       triggerSave(currentTasks);
     } catch (e) {
       console.error("Failed to update status", e);
@@ -234,7 +237,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const newStatus: Task['status'] = newCompleted === 1 ? 'done' : 'todo';
       const timestamp = nowIso();
       const currentTasks = get().tasks.map(t => t.id === id ? { ...t, is_completed: newCompleted, status: newStatus, last_modified: timestamp } : t);
-      set({ tasks: currentTasks });
+      set({ tasks: currentTasks, isTasksChangedBySync: false });
       triggerSave(currentTasks);
     } catch (e) {
       console.error("Failed to toggle task", e);
@@ -249,7 +252,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const currentTasks = get().tasks.map(t => 
         t.id === id ? { ...t, status: 'cancelled' as const, is_completed: 0, last_modified: timestamp } : t
       );
-      set({ tasks: currentTasks });
+      set({ tasks: currentTasks, isTasksChangedBySync: false });
       triggerSave(currentTasks);
     } catch (e) {
       console.error("Failed to delete task", e);
@@ -310,7 +313,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       
       if (isSynced) {
         currentTasks.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        set({ tasks: currentTasks });
+        set({ tasks: currentTasks, isTasksChangedBySync: false });
         triggerSave(currentTasks);
       }
     } catch (e) {
@@ -341,7 +344,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
       if (imported > 0) {
         currentTasks.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        set({ tasks: currentTasks });
+        set({ tasks: currentTasks, isTasksChangedBySync: false });
         triggerSave(currentTasks);
       }
     } catch (e) {
@@ -378,6 +381,13 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
+  setSyncCredentials: (uuid: string, pin: string) => {
+    localStorage.setItem(SYNC_UUID_KEY, uuid);
+    localStorage.setItem(SYNC_PIN_KEY, pin);
+    localStorage.setItem(SYNC_ETAG_KEY, '"empty"');
+    set({ syncUuid: uuid, syncPin: pin, currentEtag: '"empty"', syncError: null });
+  },
+
   /** 클라우드 동기화: download → merge → upload */
   syncWithCloud: async (options?: { keepalive?: boolean }) => {
     const { syncUuid, syncPin, tasks, isSyncing } = get();
@@ -400,7 +410,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       
       // 3. Merge 결과를 로컬에 반영
       mergedTasks.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      set({ tasks: mergedTasks });
+      set({ tasks: mergedTasks, isTasksChangedBySync: true });
       
       // 4. 로컬에 저장
       const mergedIcs = generateIcsFromTasks(mergedTasks);
@@ -416,7 +426,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           const freshRemote = parseIcsToTasks(freshDownload.icsContent);
           const reMerged = mergeTasks(mergedTasks, freshRemote);
           reMerged.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-          set({ tasks: reMerged });
+          set({ tasks: reMerged, isTasksChangedBySync: true });
           
           const reMergedIcs = generateIcsFromTasks(reMerged);
           await saveIcsData(reMergedIcs);

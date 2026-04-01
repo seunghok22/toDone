@@ -9,6 +9,7 @@ export function useAutoSync() {
   const syncWithCloud = useTaskStore(state => state.syncWithCloud);
   const tasks = useTaskStore(state => state.tasks);
   const isSyncing = useTaskStore(state => state.isSyncing);
+  const isTasksChangedBySync = useTaskStore(state => state.isTasksChangedBySync);
   const syncUuid = useTaskStore(state => state.syncUuid);
 
   // 현재 실행 중인지 여부를 저장
@@ -30,13 +31,14 @@ export function useAutoSync() {
   );
 
   // 2. tasks 배열이 변경될 때마다 debouncedSync 호출
-  // (최초 마운트 시 불필요한 호출을 막기 위해 isInitialMount ref 등을 쓸 수도 있으나
-  // 파일 로드 등 실질적 갱신이 있을 때만 트리거되도록 안전하게 작동합니다.)
   useEffect(() => {
+    if (isTasksChangedBySync) {
+      return; // ignore tasks updates triggered by the sync process itself
+    }
     if (tasks.length > 0 && syncUuid) {
       debouncedSync();
     }
-  }, [tasks, syncUuid, debouncedSync]);
+  }, [tasks, syncUuid, debouncedSync, isTasksChangedBySync]);
 
   // 3. 앱 종료/백그라운드 전환 및 오프라인 복귀 방어 로직 (Flush)
   useEffect(() => {

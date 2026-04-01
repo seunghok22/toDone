@@ -29,6 +29,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
   const [isInstalling, setIsInstalling] = useState(false);
   const [appVersion, setAppVersion] = useState('');
   const [showSyncInfo, setShowSyncInfo] = useState(false);
+  const [isEditingSync, setIsEditingSync] = useState(false);
+  const [editUuid, setEditUuid] = useState('');
+  const [editPin, setEditPin] = useState('');
 
   useEffect(() => {
     if (isTauri()) {
@@ -38,12 +41,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
     }
   }, []);
 
-  // 동기화 자격 증명 자동 초기화
-  useEffect(() => {
-    if (isSettingsModalOpen && !syncUuid) {
-      initSyncCredentials();
-    }
-  }, [isSettingsModalOpen, syncUuid, initSyncCredentials]);
+  // 동기화 자격 증명 자동 초기화 로직 제거 (사용자가 명시적으로 선택하도록 변경)
 
   const handleQuit = async () => { if (isTauri()) { await invoke('quit_app'); } };
 
@@ -141,29 +139,127 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps = {}) {
               )}
             </Button>
 
+            {!syncUuid && (
+              <div className="flex flex-col gap-2 mt-2">
+                <Button onClick={initSyncCredentials} className="w-full text-xs h-8">
+                  {t('settings.sync.enable') || '새 계정으로 동기화 켜기'}
+                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="h-px bg-border/50 flex-1"></div>
+                  <span className="text-[10px] text-muted-foreground uppercase">or</span>
+                  <div className="h-px bg-border/50 flex-1"></div>
+                </div>
+                {isEditingSync ? (
+                  <div className="bg-muted/30 rounded-lg p-3 flex flex-col gap-2 text-xs font-mono border border-primary/30">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground">UUID</span>
+                      <input 
+                        type="text" 
+                        value={editUuid}
+                        onChange={(e) => setEditUuid(e.target.value)}
+                        className="bg-transparent border border-input rounded px-2 py-1 flex-1 focus:outline-none focus:border-primary/50" 
+                        placeholder="기존 UUID 입력"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground">PIN</span>
+                      <input 
+                        type="text" 
+                        value={editPin}
+                        onChange={(e) => setEditPin(e.target.value)}
+                        className="bg-transparent border border-input rounded px-2 py-1 flex-1 focus:outline-none focus:border-primary/50" 
+                        placeholder="기존 PIN 입력"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 mt-1">
+                      <button onClick={() => setIsEditingSync(false)} className="text-muted-foreground hover:text-foreground">Cancel</button>
+                      <button 
+                        onClick={() => {
+                          store.setSyncCredentials(editUuid, editPin);
+                          setIsEditingSync(false);
+                        }}
+                        className="text-primary font-medium hover:text-primary/80"
+                      >Connect</button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button variant="secondary" onClick={() => setIsEditingSync(true)} className="w-full text-xs h-8">
+                    기존 계정 연결하기
+                  </Button>
+                )}
+              </div>
+            )}
+
             {syncError && (
               <p className="text-xs text-destructive mt-1">{syncError}</p>
             )}
 
             {syncUuid && (
-              <button 
-                onClick={() => setShowSyncInfo(!showSyncInfo)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left mt-1"
-              >
-                {showSyncInfo ? '▾' : '▸'} {t('settings.sync.info')}
-              </button>
-            )}
+              <div className="mt-1">
+                <div className="flex justify-between items-center mb-1">
+                  <button 
+                    onClick={() => {
+                      if (!isEditingSync) {
+                        setEditUuid(syncUuid);
+                        setEditPin(syncPin);
+                        setShowSyncInfo(true);
+                      }
+                      setIsEditingSync(!isEditingSync);
+                    }}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors text-left"
+                  >
+                    {isEditingSync ? t('settings.sync.cancelEdit') || 'Cancel Edit' : (showSyncInfo ? '▾ ' : '▸ ') + t('settings.sync.info')}
+                  </button>
+                  {isEditingSync && (
+                    <button
+                      onClick={() => {
+                        store.setSyncCredentials(editUuid, editPin);
+                        setIsEditingSync(false);
+                      }}
+                      className="text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                    >
+                      {t('settings.sync.save') || 'Save'}
+                    </button>
+                  )}
+                </div>
+                
+                {showSyncInfo && syncUuid && !isEditingSync && (
+                  <div className="bg-muted/30 rounded-lg p-3 flex flex-col gap-1.5 text-xs font-mono border border-border/50">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">UUID</span>
+                      <span className="text-foreground truncate ml-2 max-w-[200px]">{syncUuid}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">PIN</span>
+                      <span className="text-foreground">{syncPin}</span>
+                    </div>
+                  </div>
+                )}
 
-            {showSyncInfo && syncUuid && (
-              <div className="bg-muted/30 rounded-lg p-3 flex flex-col gap-1.5 text-xs font-mono border border-border/50">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">UUID</span>
-                  <span className="text-foreground truncate ml-2 max-w-[200px]">{syncUuid}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">PIN</span>
-                  <span className="text-foreground">{syncPin}</span>
-                </div>
+                {isEditingSync && (
+                  <div className="bg-muted/30 rounded-lg p-3 flex flex-col gap-2 text-xs font-mono border border-primary/30">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground">UUID</span>
+                      <input 
+                        type="text" 
+                        value={editUuid}
+                        onChange={(e) => setEditUuid(e.target.value)}
+                        className="bg-transparent border border-input rounded px-2 py-1 flex-1 focus:outline-none focus:border-primary/50" 
+                        placeholder="UUID"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground">PIN</span>
+                      <input 
+                        type="text" 
+                        value={editPin}
+                        onChange={(e) => setEditPin(e.target.value)}
+                        className="bg-transparent border border-input rounded px-2 py-1 w-full focus:outline-none focus:border-primary/50" 
+                        placeholder="PIN"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
